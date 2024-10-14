@@ -1,59 +1,41 @@
-# Project Title
+# Readme
 
-A short description about the project and/or client.
+Put a brief description of your code here. This should at least describe the file structure.
 
-## Getting Started
+## Build instructions
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+**You must** include the instructions necessary to build and deploy this project successfully. If appropriate, also include 
+instructions to run automated tests. 
 
-### Prerequisites
+### Requirements
 
-The things you need before installing the software.
+List the all of the pre-requisites software required to set up your project (e.g. compilers, packages, libraries, OS, hardware)
 
-* You need this
-* And you need this
-* Oh, and don't forget this
+For example:
 
-### Installation
+* Python 3.7
+* Packages: listed in `requirements.txt` 
+* Tested on Windows 10
 
-A step by step guide that will tell you how to get the development environment up and running.
+or another example:
 
-```
-$ First step
-$ Another step
-$ Final step
-```
+* Requires Raspberry Pi 3 
+* a Linux host machine with the `arm-none-eabi` toolchain (at least version `x.xx`) installed
+* a working LuaJIT installation > 2.1.0
 
-## Usage
+### Build steps
 
-A few examples of useful commands and/or tasks.
+List the steps required to build software. 
 
-```
-$ First example
-$ Second example
-$ And keep this in mind
-```
+Hopefully something simple like `pip install -e .` or `make` or `cd build; cmake ..`. In
+some cases you may have much more involved setup required.
 
-## Deployment
+### Test steps
 
-Additional notes on how to deploy this on a live or release system. Explaining the most important branches, what pipelines they trigger and how to update the database (if anything special).
+List steps needed to show your software works. This might be running a test suite, or just starting the program; but something that could be used to verify your code is working correctly.
 
-### Server
+Examples:
 
-* Live:
-* Release:
-* Development:
+* Run automated tests by running `pytest`
+* Start the software by running `bin/editor.exe` and opening the file `examples/example_01.bin`
 
-### Branches
-
-* Master:
-* Feature:
-* Bugfix:
-* etc...
-
-## Additional Documentation and Acknowledgments
-
-* Project folder on server:
-* Confluence link:
-* Asana board:
-* etc...

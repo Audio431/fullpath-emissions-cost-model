@@ -1,5 +1,5 @@
 ---
-name: Custom issue template
+name: Environment Setup template
 about: Describe this issue template's purpose here.
 title: ''
 labels: ''
@@ -7,10 +7,11 @@ assignees: Audio431
 
 ---
 
-Rationale
+#Rationale
+--
 
+#Expected Outcome
+--
 
-Expected Outcome
-
-
-Definition of Done
+#Definition of Done
+--

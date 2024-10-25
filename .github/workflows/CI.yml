@@ -27,7 +27,10 @@ jobs:
 
       # Runs a command to install web-ext for web extension
       - name: Install web-ext
-        run: npm install web-ext
+        run: |
+            git clone https://github.com/mozilla/web-ext.git
+            cd web-ext
+            npm ci
 
       # # Runs a single command using the runners shell
       # - name: Run a one-line script

@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    
+    "version": "0.1",
+    
+    "name": "Permance test for carbon analysis",
+    
+    "devtools_page": "devtools/my-page.html",
+    
+    "browser_specific_settings": {
+        "gecko": {
+          "id": "addon@example.com"
+         
+        }
+    },
+    
+    "background": {
+      "scripts": ["background/background.js"]
+    },
+
+    "permissions": ["<all_urls>"]
+
+
+}
+   

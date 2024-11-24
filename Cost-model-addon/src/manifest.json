@@ -1,11 +1,11 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     
     "version": "0.1",
     
-    "name": "Permance test for carbon analysis",
+    "name": "Performance test for carbon analysis",
     
-    "devtools_page": "devtools/my-page.html",
+    "devtools_page": "index.html",
     
     "browser_specific_settings": {
         "gecko": {
@@ -13,12 +13,11 @@
          
         }
     },
-    
-    "background": {
-      "scripts": ["background/background.js"]
-    },
 
-    "permissions": ["<all_urls>"]
+    "background": {
+        "scripts": ["background.bundle.js"],
+        "service_worker": "background.bundle.js"
+    }
 
 
 }

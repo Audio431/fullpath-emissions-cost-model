@@ -1,0 +1,13 @@
+[
+    {
+      "namespace": "myAPI",
+      "permissions": [],
+      "functions": [
+        {
+          "name": "getData",
+          "type": "function",
+          "parameters": []
+        }
+      ]
+    }
+]

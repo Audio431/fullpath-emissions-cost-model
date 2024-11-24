@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    
+    "version": "0.1",
+    
+    "name": "Performance test for carbon analysis",
+    
+    "devtools_page": "index.html",
+    
+    "browser_specific_settings": {
+        "gecko": {
+          "id": "addon@example.com"
+         
+        }
+    },
+
+    "background": {
+        "scripts": ["background.bundle.js"],
+        "service_worker": "background.bundle.js"
+    }
+
+
+}
+   

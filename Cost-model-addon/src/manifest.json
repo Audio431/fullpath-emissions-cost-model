@@ -1,5 +1,5 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     
     "version": "0.1",
     
@@ -17,6 +17,13 @@
     "background": {
         "scripts": ["background.bundle.js"],
         "service_worker": "background.bundle.js"
+    },
+
+    "cross_origin_embedder_policy": {
+        "value": "require-corp"
+    },
+    "cross_origin_opener_policy": {
+        "value": "same-origin"
     }
 
 

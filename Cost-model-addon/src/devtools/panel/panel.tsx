@@ -5,7 +5,12 @@ const label = { inputProps: { 'aria-label': 'Switch demo' } };
 
 export function Panel() {
     const handleClick = async () => {
-        await browser.runtime.sendMessage({ data: "start testing performance" });
+      try {
+        const response = await chrome.runtime.sendMessage({ data: "start testing performance" });
+        console.log("Response from background script:", response);
+      } catch (error) {
+        console.error("Error:", chrome.runtime.lastError);
+      }
     };
   return (
     <>

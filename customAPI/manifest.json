@@ -1,19 +1,30 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Custom API",
     "version": "1.0",
 
     "background": {
       "scripts": ["background.js"]
+    }, 
+
+    "action" : {
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+      }
     },
 
-    "browser_action": {
-      "default_popup": "popup.html",
+    "sidebar_action": {
       "default_icon": {
-        "16": "icons/page-16.png",
-        "48": "icons/page-48.png",
-        "128": "icons/page-128.png"
-      }
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+      },
+
+      "default_title": "Custom API",
+      "default_panel": "sidebar.html",
+      "open_at_install": true
     },
 
     "experiment_apis": {
@@ -27,10 +38,34 @@
       }
     },
 
-    "applications": {
+    "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ],
+
+    "browser_specific_settings": {
         "gecko": {
         "id": "my-extension@example.com"
         }
+    },
+
+    "web_accessible_resources": [{
+      "resources": ["report.html"],
+      "matches": ["<all_urls>"]
+    }],
+
+    "commands": {
+    "_execute_sidebar_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      }
     }
+  },
+
+  "permissions": ["scripting", "tabs", "unlimitedStorage"],
+  "host_permissions": ["<all_urls>"]
+
 }
   

@@ -5,13 +5,14 @@ function handleShown() {
 function handleHidden() {
   console.log("panel is being hidden");
 }
-browser.devtools.panels
+chrome.devtools.panels
   .create(
     "My Panel", // title
     "../../public/play.svg", // icon
     "panel.html", // content
-  )
-  .then((newPanel) => {
-    newPanel.onShown.addListener(handleShown);
-    newPanel.onHidden.addListener(handleHidden);
-});
+  );
+
+//   .then((newPanel) => {
+//     newPanel.onShown.addListener(handleShown);
+//     newPanel.onHidden.addListener(handleHidden);
+// });

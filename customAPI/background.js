@@ -2,8 +2,15 @@ browser.runtime.onInstalled.addListener(() => {
   console.log("Extension installed or updated!");
 });
 
+let isOpen = false;
+
 browser.action.onClicked.addListener(() => {
+  if (isOpen) {
     browser.sidebarAction.open();
+  }
+  else {
+    browser.sidebarAction.close();
+  }
 });
 
 // Initialize the global tracking state

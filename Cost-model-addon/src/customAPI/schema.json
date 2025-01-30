@@ -1,0 +1,32 @@
+[
+    {
+      "namespace": "myAPI",
+      "functions": [
+        {
+          "name": "getData",
+          "type": "function",
+          "description": "Get data from the API",
+          "async": true,
+          "parameters": []
+        },
+        {
+          "name": "add",
+          "type": "function",
+          "description": "Adds two numbers together.",
+          "async": true,
+          "parameters": [
+            {
+              "name": "x",
+              "type": "number",
+              "description": "The first number to add."
+            },
+            {
+              "name": "y",
+              "type": "number",
+              "description": "The second number to add."
+            }
+          ]
+        }
+      ]
+    }
+]

@@ -15,10 +15,10 @@
       "resolveJsonModule": true,
       "baseUrl": ".",
       "paths": {
-        "@devtools/*": ["src/devtools/*"],
+        "@devtools/*": ["src/sidebar/*"],
         "@public/*": ["src/public/*"],
       },
-      "rootDirs": ["src/devtools", "src/devtools/panels", "src/background"],
+      "rootDirs": ["src/sidebar", "src/sidebar/panels", "src/background"],
       "alwaysStrict": true,
       "strictFunctionTypes": true,
       "noImplicitAny": true,

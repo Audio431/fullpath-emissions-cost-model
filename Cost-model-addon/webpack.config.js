@@ -6,9 +6,9 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: {
-    panel: './src/devtools/panel/panelRoot.tsx',
-    devtools: './src/devtools/devtools.ts',
+    panel: './src/sidebar/panelRoot.tsx',
     background: './src/background/index.ts',
+    content: './src/content/index.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -64,17 +64,14 @@ module.exports = {
         { 
           from: path.resolve('src/manifest.json'), to: path.resolve(__dirname, 'dist')
         },
+        {
+          from: path.resolve('src/customAPI'), to: path.resolve(__dirname, 'dist/customAPI')
+        }
       ],
     }),
     new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: path.resolve(__dirname, 'src', 'index.template.html'),// Using the template file
-      chunks: ['devtools'],
-      inject: 'body' // Inject scripts at the end of the body
-    }),
-    new HtmlWebpackPlugin({
       filename: 'panel.html',
-      template: path.resolve(__dirname, 'src', 'panel.template.html'),// Using the template file
+      template: path.resolve(__dirname, 'src','sidebar','panel.template.html'),// Using the template file
       chunks: ['panel'],
       inject: 'body' // Inject scripts at the end of the body
     })

@@ -1,6 +1,6 @@
 let trackingActive = false;
-let clickHandler = null;
-let scrollHandler = null;
+let clickHandler: (e: Event) => void;
+let scrollHandler: (e: Event) => void;
 
 function startTracking() {
   if (trackingActive) return; // already tracking

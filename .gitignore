@@ -165,3 +165,4 @@ node_modules/
 .vscode/
 yarn.lock
 To-Do
+.env.local

@@ -8,10 +8,11 @@ function startTracking() {
 
   clickHandler = (e) => {
     console.log("[Content Script] Click event:", e);
-    // You could also send data to background or wherever...
+    browser.runtime.sendMessage({ type: "CLICK_EVENT", payload: e });
   };
   scrollHandler = (e) => {
     console.log("[Content Script] Scroll event:", window.scrollY);
+    browser.runtime.sendMessage({ type: "SCROLL_EVENT", payload: window.scrollY });
   };
 
   window.addEventListener("click", clickHandler, true);

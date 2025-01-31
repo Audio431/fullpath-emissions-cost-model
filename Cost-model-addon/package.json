@@ -34,7 +34,9 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
     "@types/chrome": "^0.0.283",
-    "@types/firefox": "^0.0.34"
+    "@types/firefox": "^0.0.34",
+    "dotenv": "^16.4.7"
   }
 }

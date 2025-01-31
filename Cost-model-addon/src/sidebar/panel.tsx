@@ -1,7 +1,14 @@
 import Button  from '@mui/material/Button';
-import React from 'react';
+import * as React from 'react';
+import EventsBox from './eventBox';
 
-export function SideBar() {
+ 
+browser.action.onClicked.addListener(() => {
+  browser.sidebarAction.close();
+});
+
+export default function SideBar() {
+  
   const [isTracking, setIsTracking] = React.useState(false);
   const handleTrackingButton = async () => {
     try {
@@ -13,14 +20,16 @@ export function SideBar() {
     }
   };
 
+
   return (
     <>
     <p>Tracking is {isTracking ? "ON": "OFF"} </p>
-    <Button variant="contained" onClick={handleTrackingButton}>
-      <span>
-      {isTracking ? "Stop Tracking" : "Start Tracking"}
-      </span>
-    </Button>
+      <Button variant="contained" onClick={handleTrackingButton}>
+        <span>
+        {isTracking ? "Stop Tracking" : "Start Tracking"}
+        </span>
+      </Button>
+     {/* <EventsBox /> */}
     </>
   );
 }

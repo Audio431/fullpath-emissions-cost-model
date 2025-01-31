@@ -2,15 +2,8 @@ browser.runtime.onInstalled.addListener(() => {
   console.log("Extension installed or updated!");
 });
 
-let isOpen = false;
-
 browser.action.onClicked.addListener(() => {
-  if (isOpen) {
-    browser.sidebarAction.open();
-  }
-  else {
-    browser.sidebarAction.close();
-  }
+  browser.sidebarAction.open();
 });
 
 // Initialize the global tracking state
@@ -39,6 +32,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "TRACKING_STOPPED") {
     console.log("Background: Tracking has stopped.");
+  }
+
+  if (message.type === "CLICK_EVENT") {
+    console.log("Background: Received a click event:", message.payload);
   }
 });
 

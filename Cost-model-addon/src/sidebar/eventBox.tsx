@@ -7,40 +7,6 @@ interface EventProps {
     description: string;
 }
 
-
-// export default function EventsBox() {
-
-//     const dummy_tasks = [
-//         {
-//             title: "Event 1",
-//             description: "This is the first task"
-//         },
-//         {
-//             title: "Event 2",
-//             description: "This is the second task"
-//         },
-//         {
-//             title: "Event 3",
-//             description: "This is the third task"
-//         }
-  
-//     ];
-
-//     return (
-//         <>
-//             <h2>Events</h2>
-//             <List sx={{ width: '100%', maxWidth: 360, bgcolor: '#f0f0f0' }}>
-//                 {dummy_tasks.map((task, index) => (
-//                     <ListItem key={index} sx={{ bgcolor: "grey.100", mb: 1, borderRadius: 1 }}>
-//                             <EventComponent title={task.title} description={task.description} />
-//                     </ListItem>
-//                 ))}
-//             </List> 
-//         </>
-//     );
-// }
-
-
 function EventComponent(props: EventProps) {
     return (
         <div  style={{

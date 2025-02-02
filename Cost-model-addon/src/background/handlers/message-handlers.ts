@@ -1,5 +1,5 @@
-import { MessageType, TrackingMessage } from './message.type';
-import { TrackingState } from '../../state/tracking-state';
+import { MessageType, TrackingMessage } from './types/message.type';
+import { TrackingState } from '../state/tracking-state';
 
 export abstract class BaseMessageHandler {
   abstract handleMessage(message: TrackingMessage, sender: any, sendResponse: (response?: any) => void): void;

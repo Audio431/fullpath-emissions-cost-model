@@ -2,7 +2,7 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { DefinePlugin } = require('webpack');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+require('dotenv').config({ path: path.resolve(__dirname, '.env.local') });
 
 module.exports = {
   mode: 'development',
@@ -10,8 +10,7 @@ module.exports = {
   entry: {
     panel: './src/sidebar/panelRoot.tsx',
     background: './src/background/index.ts',
-    content: './src/content/index.ts',
-    utils: './src/utils/supabase.ts',
+    content: './src/content/index.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -78,9 +77,5 @@ module.exports = {
       chunks: ['panel'],
       inject: 'body' // Inject scripts at the end of the body
     }),
-    new DefinePlugin({
-      'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
-      'process.env.REACT_APP_SUPABASE_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY)
-    })
   ],
 };

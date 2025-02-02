@@ -2,10 +2,6 @@ import Button  from '@mui/material/Button';
 import * as React from 'react';
 import EventsBox from './eventBox';
 
- 
-browser.action.onClicked.addListener(() => {
-  browser.sidebarAction.close();
-});
 
 export default function SideBar() {
   
@@ -29,7 +25,7 @@ export default function SideBar() {
         {isTracking ? "Stop Tracking" : "Start Tracking"}
         </span>
       </Button>
-     {/* <EventsBox /> */}
+     <EventsBox />
     </>
   );
 }

@@ -166,3 +166,4 @@ node_modules/
 yarn.lock
 To-Do
 .env.local
+.DS_Store

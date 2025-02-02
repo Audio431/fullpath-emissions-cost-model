@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "ES6",
       "lib": ["dom", "dom.iterable", "esnext"],
-      "types": ["chrome", "firefox-webext-browser"],
+      "types": ["firefox-webext-browser"],
       "jsx": "react-jsx",
       "module": "esnext",
       "moduleResolution": "node",

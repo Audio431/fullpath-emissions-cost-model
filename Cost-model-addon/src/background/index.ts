@@ -1,6 +1,6 @@
-import * as messageHandler from "./services/messaging/message-handlers";
+import * as messageHandler from "./handlers/message-handlers";
 import { TrackingState } from "./state/tracking-state";
-import { MessageType } from "./services/messaging/message.type";
+import { MessageType } from "./handlers/types/message.type";
 
 
 (async () => {

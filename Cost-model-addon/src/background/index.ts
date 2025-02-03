@@ -1,6 +1,7 @@
 import * as messageHandler from "./handlers/message-handlers";
 import { TrackingState } from "./state/tracking-state";
-import { MessageType } from "./handlers/types/message.type";
+import { MessageType } from "./handlers/types/message.types";
+import { WebSocketService } from "./services/client-websocket";
 
 
 (async () => {
@@ -21,6 +22,8 @@ import { MessageType } from "./handlers/types/message.type";
       contentHandler.handleMessage(message, sender, sendResponse);
     } else if (message.type === MessageType.TOGGLE_TRACKING) {
       trackingHandler.handleMessage(message, sender, sendResponse);
+      const ws = WebSocketService.getInstance('user1');
+      ws.connect();
     }
   });
   

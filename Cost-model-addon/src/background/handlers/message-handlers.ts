@@ -1,4 +1,4 @@
-import { MessageType, TrackingMessage } from './types/message.type';
+import { MessageType, TrackingMessage } from './types/message.types';
 import { TrackingState } from '../state/tracking-state';
 
 export abstract class BaseMessageHandler {

@@ -65,7 +65,11 @@
   },
 
   "permissions": ["scripting", "tabs", "unlimitedStorage"],
-  "host_permissions": ["<all_urls>"]
+  "host_permissions": ["<all_urls>"],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; connect-src 'none' ws://localhost:3000 http://localhost:3000"
+  }
 
 }
   

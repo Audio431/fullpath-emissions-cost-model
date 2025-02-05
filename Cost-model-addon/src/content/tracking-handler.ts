@@ -1,23 +1,29 @@
 export class ContentTrackingHandler {
     private clickHandler: ((e: Event) => void) | null = null;
     private scrollHandler: ((e: Event) => void) | null = null;
+    private action: { type: string; payload: number }[] = [];
   
-    enableTracking(): void {
+    async enableTracking(): Promise<void> {
       this.clickHandler = (e: Event) => {
-        console.log("[Content Script] Click event:", e);
-        browser.runtime.sendMessage({ type: "CLICK_EVENT", payload: e });
+        e.stopPropagation();
+        browser.runtime.sendMessage({ type: "CLICK_EVENT", payload: (e.target as HTMLElement).tagName })
+        .then((response) => {console.log("Response from background script:", response);})
+        .catch((error) => {console.error("Error:", error);});
       };
   
       this.scrollHandler = (e: Event) => {
-        console.log("[Content Script] Scroll event:", window.scrollY);
-        browser.runtime.sendMessage({ type: "SCROLL_EVENT", payload: window.scrollY });
+        e.stopPropagation();
+        browser.runtime.sendMessage({ type: "SCROLL_EVENT", payload: window.scrollY })
+        .then((response) => {console.log("Response from background script:", response);})
+        .catch((error) => {console.error("Error:", error);});
+        this.action.push({ type: "SCROLL_EVENT", payload: window.scrollY });
       };
   
       window.addEventListener("click", this.clickHandler, true);
       window.addEventListener("scroll", this.scrollHandler, { passive: true });
     }
   
-    disableTracking(): void {
+    async disableTracking(): Promise<void> {
       if (this.clickHandler) {
         window.removeEventListener("click", this.clickHandler, true);
         this.clickHandler = null;
@@ -27,5 +33,6 @@ export class ContentTrackingHandler {
         this.scrollHandler = null;
       }
     }
+
 }
   

@@ -1,4 +1,4 @@
-import { MessageType, TrackingMessage } from './types/message.types';
+import { MessageType, TrackingMessage } from '../types/message.types';
 import { TrackingState } from '../state/tracking-state';
 
 export abstract class BaseMessageHandler {
@@ -15,6 +15,7 @@ export class ContentMessageHandler extends BaseMessageHandler {
     switch (message.type) {
       case MessageType.CLICK_EVENT:
         console.log("Background: Received a click event:", message.payload);
+        
         break;
         
       case MessageType.SCROLL_EVENT:

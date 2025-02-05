@@ -1,5 +1,5 @@
 import { api } from './api';
-
+import { TrackingMessage } from '../types/message.types';
 
 export class WebSocketService {
     private static instance: WebSocketService;

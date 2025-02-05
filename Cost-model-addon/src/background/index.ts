@@ -10,8 +10,6 @@ import { WebSocketService } from "./services/client-websocket";
   const trackingHandler = new messageHandler.TrackingMessageHandler(trackingStateInstance);
   const wsService = WebSocketService.getInstance("extension-client");
 
-  await wsService.connect();
-
   browser.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated!");
   });
@@ -20,16 +18,22 @@ import { WebSocketService } from "./services/client-websocket";
     browser.sidebarAction.open();
   });
   
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     // From content script
     if (message.type === MessageType.CLICK_EVENT || message.type === MessageType.SCROLL_EVENT) {
       contentHandler.handleMessage(message, sender, sendResponse);
+      await wsService.sendMessage(message);
     }
 
     // From sidebar
     if (message.type === MessageType.TOGGLE_TRACKING) {
       trackingHandler.handleMessage(message, sender, sendResponse);
+      if (trackingStateInstance.isTrackingActive()) {
+        await wsService.connect();
+      } else {
+        wsService.disconnect();
+      }
     }
   });
   

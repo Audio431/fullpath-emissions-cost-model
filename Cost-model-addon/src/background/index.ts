@@ -1,6 +1,6 @@
 import * as messageHandler from "./handlers/message-handlers";
 import { TrackingState } from "./state/tracking-state";
-import { MessageType } from "./handlers/types/message.types";
+import { MessageType } from "./types/message.types";
 import { WebSocketService } from "./services/client-websocket";
 
 
@@ -8,6 +8,9 @@ import { WebSocketService } from "./services/client-websocket";
   const trackingStateInstance = TrackingState.getInstance();
   const contentHandler = new messageHandler.ContentMessageHandler();
   const trackingHandler = new messageHandler.TrackingMessageHandler(trackingStateInstance);
+  const wsService = WebSocketService.getInstance("extension-client");
+
+  await wsService.connect();
 
   browser.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated!");
@@ -18,12 +21,15 @@ import { WebSocketService } from "./services/client-websocket";
   });
   
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+    // From content script
     if (message.type === MessageType.CLICK_EVENT || message.type === MessageType.SCROLL_EVENT) {
       contentHandler.handleMessage(message, sender, sendResponse);
-    } else if (message.type === MessageType.TOGGLE_TRACKING) {
+    }
+
+    // From sidebar
+    if (message.type === MessageType.TOGGLE_TRACKING) {
       trackingHandler.handleMessage(message, sender, sendResponse);
-      const ws = WebSocketService.getInstance('user1');
-      ws.connect();
     }
   });
   
@@ -35,5 +41,9 @@ import { WebSocketService } from "./services/client-websocket";
     ) {
       trackingHandler.sendTrackingState(tabId);
     }
+  });
+
+  browser.runtime.onSuspend.addListener(() => {
+    wsService.disconnect();
   });
 })();

@@ -8,9 +8,9 @@ export default function SideBar() {
   const [isTracking, setIsTracking] = React.useState(false);
   const handleTrackingButton = async () => {
     try {
-      const response = await browser.runtime.sendMessage({ type: "TOGGLE_TRACKING" });
+      const response = await browser.runtime.sendMessage({ type: "TOGGLE_TRACKING", from: "sidebar" });
       setIsTracking(!isTracking);
-      console.log("Response from background script:", response);
+      // console.log("Response from background script:", response);
     } catch (error) {
       console.error("Error:", browser.runtime.lastError);
     }

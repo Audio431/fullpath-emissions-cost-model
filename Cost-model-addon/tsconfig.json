@@ -13,7 +13,7 @@
       "forceConsistentCasingInFileNames": true,
       "isolatedModules": true,
       "resolveJsonModule": true,
-      "baseUrl": ".",
+      "baseUrl": "",
       "paths": {
         "@devtools/*": ["src/sidebar/*"],
         "@public/*": ["src/public/*"],
@@ -22,10 +22,10 @@
       "alwaysStrict": true,
       "strictFunctionTypes": true,
       "noImplicitAny": true,
-      "outDir": "./dist",
+      "outDir": "dist",
     },
     "typeRoots": ["./node_modules/@types"], 
-    "include": ["./src"],
-    "exclude": ["./node_modules", "./dist", "./public"],
+    "include": ["src"],
+    "exclude": ["node_modules", "dist", "public"],
   }
   

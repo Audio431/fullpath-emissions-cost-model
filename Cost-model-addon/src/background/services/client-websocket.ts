@@ -53,4 +53,10 @@ export class WebSocketService {
             WebSocketService.ws = null;
         }
     }
+
+    public sendMessage(message: TrackingMessage): void {
+        if (WebSocketService.ws?.readyState === WebSocket.OPEN) {
+            WebSocketService.ws.send(JSON.stringify(message));
+        }
+    }
 }

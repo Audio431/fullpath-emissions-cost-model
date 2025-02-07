@@ -69,7 +69,7 @@
   "host_permissions": ["<all_urls>"],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; connect-src 'none' ws://localhost:3000 http://localhost:3000"
+    "extension_pages": "script-src 'self'; connect-src 'none' ws://fullpath-energyemissions-cost-model.onrender.com/ https://fullpath-energyemissions-cost-model.onrender.com/ ws://localhost:3000/ https://localhost:3000/;"
   }
 
 }

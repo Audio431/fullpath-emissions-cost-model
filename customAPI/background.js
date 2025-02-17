@@ -33,6 +33,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Otherwise, no need to return anything
   }
 
+
+  if (message.type === "SOME_ACTION") {
+    // Do something in response to the message
+    console.log("Background: Received message from sidebar:", message.payload);
+  }
   if (message.type === "TRACKING_STARTED") {
     console.log("Background: Tracking has started.");
   }

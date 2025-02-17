@@ -15,13 +15,13 @@ export class ContentMessageHandler extends BaseMessageHandler {
     switch (message.type) {
       case MessageType.CLICK_EVENT:
         console.log("Background: Received a click event:", message.payload);
-        
+
         break;
-        
+
       case MessageType.SCROLL_EVENT:
         console.log("Background: Received a scroll event:", message.payload);
         break;
-        
+
       default:
         this.handleUnknownMessage(message.type, sendResponse);
         break;
@@ -30,49 +30,65 @@ export class ContentMessageHandler extends BaseMessageHandler {
 }
 
 export class TrackingMessageHandler extends BaseMessageHandler {
-  constructor(private TrackingState: TrackingState) {
+
+  private TrackingState: TrackingState;
+  private ports: { [tabId: number]: browser.runtime.Port } = {};
+
+
+  constructor() {
     super();
-    this.TrackingState.onStateChange((state: boolean) => {
-      this.broadcastTrackingState(state);
-    });
+    this.TrackingState = TrackingState.getInstance();
+  }
+
+  registerPort(tabId: number, port: browser.runtime.Port): void {
+    this.ports[tabId] = port;
+  }
+
+  unregisterPort(tabId: number): void {
+    delete this.ports[tabId];
+  }
+
+  public getTrackingState(): boolean {
+    return this.TrackingState.isTrackingActive();
   }
 
   handleMessage(message: TrackingMessage, sender: any, sendResponse: (response?: any) => void): void {
     switch (message.type) {
       case MessageType.TOGGLE_TRACKING:
-        this.TrackingState.isTrackingActive() 
-          ? this.TrackingState.stopTracking() 
+        this.TrackingState.isTrackingActive()
+          ? this.TrackingState.stopTracking()
           : this.TrackingState.startTracking();
+
         break;
-        
+
       default:
         this.handleUnknownMessage(message.type, sendResponse);
         break;
     }
   }
 
-  private async broadcastTrackingState(state: boolean): Promise<void> {
+  async sendTrackingStateToActiveTab(): Promise<void> {
     try {
-      const tabs = await browser.tabs.query({});
-      for (const tab of tabs) {
-        if (tab.id && tab.url?.startsWith("http")) {
-          await this.sendTrackingState(tab.id, state);
-        }
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tabs.length === 0 || !tabs[0].id) {
+        console.warn("No active tab found");
+        return;
+      }
+      
+      const activeTab = tabs[0];
+
+      if (activeTab.id !== undefined) {
+        console.log("activeTab.url", activeTab.url);
+        await browser.tabs.sendMessage(activeTab.id, { 
+          type: MessageType.TRACKING_STATE, 
+          payload: this.getTrackingState(), 
+          from: "background" 
+        });
+      } else {
+        console.warn("Active tab ID is undefined");
       }
     } catch (error) {
-      console.error("Failed to broadcast tracking state:", error);
-    }
-  }
-
-  async sendTrackingState(tabId: number, state?: boolean): Promise<void> {
-    try {
-      const TrackingState = state ?? this.TrackingState.isTrackingActive();
-      await browser.tabs.sendMessage(tabId, {
-        type: MessageType.TRACKING_STATE,
-        payload: TrackingState
-      });
-    } catch (error) {
-      console.warn(`Failed to send message to tab ${tabId}:`, error);
+      console.error("Failed to send tracking state:", error);
     }
   }
 }

@@ -8,4 +8,5 @@ export enum MessageType {
 export interface TrackingMessage {
   type: MessageType;
   payload?: any;
+  from: 'content-script' | 'background' | 'sidebar';
 }

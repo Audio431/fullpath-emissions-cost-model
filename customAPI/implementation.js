@@ -1,7 +1,3 @@
-ChromeUtils.defineESModuleGetters(this, {
-    FileUtils: "resource://gre/modules/FileUtils.sys.mjs",
-});
-
 /* This privileged extension API is required to access the memory reporter.
 * firefox's about:config:
 * 1. xpinstall.signatures.required = false
@@ -16,6 +12,45 @@ ChromeUtils.defineESModuleGetters(this, {
 * 5. namespace in schema.json
 */
 
+
+/**
+ * @typedef {Object} ProcessInfo
+ * @property {number} cpuCycleCount
+ * @property {number} cpuTime
+ */
+
+/**
+ * @typedef {Object} ThreadsInfo
+ * @extends ProcessInfo
+ * // Add any thread fields you have here, for example:
+ * @property {number} tid
+ * @property {string} name
+ */
+
+/**
+ * @typedef {Object} ChildProcessInfo
+ * @extends ProcessInfo
+ * @property {number} childId
+ * @property {number} memory
+ * @property {string} origin
+ * @property {number} pid
+ */
+
+/**
+ * @typedef {Object} MainProcessInfo
+ * @extends ProcessInfo
+ * @property {ChildProcessInfo[]} children
+ * @property {number} pid
+ * @property {number} memory
+ * @property {ThreadsInfo[]} threads
+ * @property {string} type
+ */
+
+
+
+ChromeUtils.defineESModuleGetters(this, {
+    FileUtils: "resource://gre/modules/FileUtils.sys.mjs",
+});
 
 // if error occured in this function, function missing error will be thrown
 this.myAPI = class extends ExtensionAPI {
@@ -83,9 +118,34 @@ this.myAPI = class extends ExtensionAPI {
 
                     // return {kinds, units};
                     },
-                },
+                
+                 /** 
+                 * Retrieves CPU info via ChromeUtils.requestProcInfo().
+                 * @returns {Promise<MainProcessInfo>} 
+                 */
+                async getCPUInfo() {
+                    try {
+                        let main = await ChromeUtils.requestProcInfo();
 
+                        main.children = main.children.map((child) => {
+                            let { pid, memory, origin, cpuTime, cpuCycleCount } = child;
+                            return { pid, memory, origin, cpuTime, cpuCycleCount };
+                        });
+
+                        main.threads = main.threads.map((thread) => {
+                            let { tid, name, cpuTime, cpuCycleCount } = thread;
+                            return { tid, name, cpuTime, cpuCycleCount };
+                        });
+
+                        return main;
+
+                    } catch (e) {
+                        console.error("Error in getCPU:", e);
+                        return e;
+                    }
+                },
             }
         };
+    };
 };
 

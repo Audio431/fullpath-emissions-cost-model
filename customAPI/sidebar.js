@@ -18,21 +18,29 @@ toggleBtn.addEventListener("click", async () => {
 
 
 testBtn.addEventListener("click", () => {
-  browser.myAPI.getData().then((data) => {
+  // browser.myAPI.getData().then((data) => {
+  //   console.log("Popup API Response:", data);
+  //   localStorage.setItem("popupData", JSON.stringify(data,null, 2));
+  //   console.log("Popup API Response:", localStorage.getItem("popupData"));
+  //   browser.tabs.create({
+  //     url: "/report.html"
+  //   });
+
+  //   createExportButton(data);
+  // }).catch((error) => {
+  //   console.error("Popup API Error:", error);
+  // });
+
+  // console.log("Popup API Response:", data);
+  browser.myAPI.getCPUInfo().then((data) => {
     console.log("Popup API Response:", data);
-    localStorage.setItem("popupData", JSON.stringify(data,null, 2));
-    console.log("Popup API Response:", localStorage.getItem("popupData"));
-    browser.tabs.create({
-      url: "/report.html"
-    });
-
-    createExportButton(data);
-  }).catch((error) => {
-    console.error("Popup API Error:", error);
+  //   // localStorage.setItem("popupData", JSON.stringify(data,null, 2));
+  //   // console.log("Popup API Response:", localStorage.getItem("popupData"));
+  // }).catch((error) => {
+  //   console.error("Popup API Error:", error);
   });
+
 });
-
-
 
 /* ================================= */
 // Function to create export button with direct data

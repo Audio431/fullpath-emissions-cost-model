@@ -1,9 +1,9 @@
-import { MessageType, TrackingMessage } from '../types/message.types';
+import { MessageType, Message } from '../../common/message.types';
 import { BaseMessageHandler } from './base-handler';
 
 export class ContentMessageHandler extends BaseMessageHandler {
   handleMessage(
-    message: TrackingMessage, 
+    message: Message, 
     sender: any, 
     sendResponse: (response?: any) => void
   ): void {

@@ -1,5 +1,5 @@
 import { api } from './api';
-import { TrackingMessage } from '../types/message.types';
+import { Message } from '../../common/message.types';
 
 export class WebSocketService {
     private static instance: WebSocketService;
@@ -55,7 +55,7 @@ export class WebSocketService {
         }
     }
 
-    public sendMessage(message: TrackingMessage): void {
+    public sendMessage(message: Message): void {
         if (WebSocketService.ws?.readyState === WebSocket.OPEN) {
             WebSocketService.ws.send(JSON.stringify(message));
         }

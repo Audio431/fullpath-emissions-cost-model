@@ -1,8 +1,8 @@
-import { TrackingMessage } from '../types/message.types';
+import { Message } from '../../common/message.types';
 
 export abstract class BaseMessageHandler {
   abstract handleMessage(
-    message: TrackingMessage, 
+    message: Message, 
     sender: any, 
     sendResponse: (response?: any) => void
   ): void;

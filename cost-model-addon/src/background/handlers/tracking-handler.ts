@@ -1,4 +1,4 @@
-import { MessageType, TrackingMessage } from '../types/message.types';
+import { MessageType, Message } from '../../common/message.types';
 import { TrackingState } from '../state/tracking-state';
 import { BaseMessageHandler } from './base-handler';
 import { PortManager } from '../port-manager';
@@ -19,7 +19,7 @@ export class TrackingMessageHandler extends BaseMessageHandler {
   }
 
   handleMessage(
-    message: TrackingMessage, 
+    message: Message, 
     sender: any, 
     sendResponse: (response?: any) => void
   ): void {

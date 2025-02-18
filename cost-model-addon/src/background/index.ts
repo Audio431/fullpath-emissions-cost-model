@@ -1,89 +1,68 @@
-import * as messageHandler from "./handlers/message-handlers";
-import { TrackingState } from "./state/tracking-state";
-import { MessageType, TrackingMessage } from "./types/message.types";
-import { WebSocketService } from "./services/client-websocket";
+import { ContentMessageHandler } from './handlers/content-handler';
+import { TrackingMessageHandler } from './handlers/tracking-handler';
+import { WebSocketService } from './services/client-websocket';
+import { PortManager } from './port-manager';
+import { MessageType } from './types/message.types';
 
+// Initialize services and handlers
+const contentHandler = new ContentMessageHandler();
+const trackingHandler = new TrackingMessageHandler();
+const wsService = WebSocketService.getInstance("extension-client");
+const portManager = PortManager.getInstance();
 
-export class PortManager {
-  private ports: Map<number, browser.runtime.Port> = new Map();
+// Handle connection from content scripts
+const handleConnect = (port: browser.runtime.Port): void => {
+  if (port.name !== "content-script") return;
 
-  registerPort(tabId: number, port: browser.runtime.Port): void {
-    this.ports.set(tabId, port);
-    console.log(`Port for tab ${tabId} registered`);
-    port.onDisconnect.addListener(() => {
-      this.ports.delete(tabId);
-      console.log(`Port for tab ${tabId} disconnected`);
+  const tabId = port.sender?.tab?.id;
+  if (!tabId) return;
+
+  portManager.registerPort(tabId, port);
+  port.onMessage.addListener((message: any) => {
+    contentHandler.handleMessage(message, port.sender, (response) => {
+      port.postMessage(response);
     });
-  }
-
-  broadcast(message: any): void {
-    this.ports.forEach((port, tabId) => {
-      try {
-        port.postMessage(message);
-      } catch (error) {
-        console.warn(`Failed to send message to tab ${tabId}:`, error);
-      }
-    });
-  }
-
-  getPort(tabId: number): browser.runtime.Port | undefined {
-    return this.ports.get(tabId);
-  }
-}
-
-
-(async () => {
-  const contentHandler = new messageHandler.ContentMessageHandler();
-  const trackingHandler = new messageHandler.TrackingMessageHandler();
-  const wsService = WebSocketService.getInstance("extension-client");
-  const portManager = new PortManager();
-
-  
-  browser.runtime.onConnect.addListener((port) => {
-    if (port.name === "content-script") {
-
-      const tabId = port.sender?.tab?.id;
-      
-      portManager.registerPort(tabId!, port);
-
-      port.onMessage.addListener((message: any) => {
-        contentHandler.handleMessage(message, port.sender, (response) => {
-          port.postMessage(response);
-        })
-      });
-    }
   });
+};
 
-
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => { 
-    if (message.type === MessageType.TOGGLE_TRACKING && message.from === "sidebar") {
-      trackingHandler.handleMessage(message, sender, sendResponse);
-      console.log("state toggled: ", trackingHandler.getTrackingState());
-      trackingHandler.sendToActiveTab(portManager);
-    }
-  });
-
-
-  // On tab update complete, send the tracking state to the tab.
-  browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete" && tab.url) {
-    // If a port exists for this tab, send the current tracking state
-    const port = portManager['ports'].get(tabId); // Accessing the map
-    if (port) {
-      port.postMessage({
-        type: "TRACKING_STATE",
-        payload: trackingHandler.getTrackingState(),
-        from: "background",
-      });
-      console.log(`Updated state sent to tab ${tabId} after update.`);
-    }
+// Handle messages from the extension
+const handleMessage = (
+  message: any, 
+  sender: any, 
+  sendResponse: (response?: any) => void
+): void => {
+  if (message.type === MessageType.TOGGLE_TRACKING && message.from === "sidebar") {
+    trackingHandler.handleMessage(message, sender, sendResponse);
+    trackingHandler.sendToActiveTab(portManager);
   }
-  });
+};
 
+// Handle tab updates
+const handleTabUpdate = (
+  tabId: number, 
+  changeInfo: browser.tabs._OnUpdatedChangeInfo, 
+  tab: browser.tabs.Tab
+): void => {
+  if (changeInfo.status === "complete" && tab.url) {
+    trackingHandler.sendToTab(tabId, portManager);
+  }
+};
+
+// Set up event listeners
+(() => {
+  // Connection listeners
+  browser.runtime.onConnect.addListener(handleConnect);
+
+  // Message listeners
+  browser.runtime.onMessage.addListener(handleMessage);
+
+  // Tab listeners
+  browser.tabs.onUpdated.addListener(handleTabUpdate);
   browser.tabs.onActivated.addListener(() => {
     trackingHandler.sendToActiveTab(portManager);
   });
 
+  // Extension listeners
   browser.runtime.onSuspend.addListener(() => {
     wsService.disconnect();
   });
@@ -92,9 +71,7 @@ export class PortManager {
     browser.sidebarAction.open();
   });
 
-  // Listen for installed or updated events
   browser.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated!");
   });
-
 })();

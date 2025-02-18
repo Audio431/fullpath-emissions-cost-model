@@ -1,5 +1,6 @@
 import { MessageType, TrackingMessage } from '../types/message.types';
 import { TrackingState } from '../state/tracking-state';
+import { PortManager } from '../index';
 
 export abstract class BaseMessageHandler {
   abstract handleMessage(message: TrackingMessage, sender: any, sendResponse: (response?: any) => void): void;
@@ -32,21 +33,12 @@ export class ContentMessageHandler extends BaseMessageHandler {
 export class TrackingMessageHandler extends BaseMessageHandler {
 
   private TrackingState: TrackingState;
-  private ports: { [tabId: number]: browser.runtime.Port } = {};
-
 
   constructor() {
     super();
     this.TrackingState = TrackingState.getInstance();
   }
 
-  registerPort(tabId: number, port: browser.runtime.Port): void {
-    this.ports[tabId] = port;
-  }
-
-  unregisterPort(tabId: number): void {
-    delete this.ports[tabId];
-  }
 
   public getTrackingState(): boolean {
     return this.TrackingState.isTrackingActive();
@@ -67,28 +59,26 @@ export class TrackingMessageHandler extends BaseMessageHandler {
     }
   }
 
-  async sendTrackingStateToActiveTab(): Promise<void> {
+  async sendToActiveTab(ports: PortManager): Promise<void> {
     try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-      if (tabs.length === 0 || !tabs[0].id) {
-        console.warn("No active tab found");
-        return;
-      }
-      
-      const activeTab = tabs[0];
-
-      if (activeTab.id !== undefined) {
-        console.log("activeTab.url", activeTab.url);
-        await browser.tabs.sendMessage(activeTab.id, { 
-          type: MessageType.TRACKING_STATE, 
-          payload: this.getTrackingState(), 
-          from: "background" 
-        });
-      } else {
-        console.warn("Active tab ID is undefined");
-      }
-    } catch (error) {
-      console.error("Failed to send tracking state:", error);
+      browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        if (tabs.length === 0 || !tabs[0].id) return;
+        const activeTabId = tabs[0].id;
+        const port = ports.getPort(activeTabId);
+        if (port) {
+          port.postMessage({
+            type: "TRACKING_STATE",
+            payload: this.getTrackingState(),
+            from: "background",
+          });
+          console.log(`Sent state to active tab ${activeTabId} url: ${tabs[0].url}`);
+        } else {
+          console.log(`No registered port for active tab ${activeTabId}`);
+        }
+      });
+    }
+    catch (error) {
+      console.error("Error sending tracking state to active tab:", error);
     }
   }
 }

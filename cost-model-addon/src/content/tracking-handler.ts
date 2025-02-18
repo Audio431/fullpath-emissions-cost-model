@@ -3,15 +3,19 @@ export class ContentTrackingHandler {
   private scrollHandler: ((e: Event) => void) | null = null;
   private action: { type: string; payload: number }[] = [];
   private port: browser.runtime.Port | null = null;
+
+  registerPort(port: browser.runtime.Port): void {
+    this.port = port;
+    this.port.onDisconnect.addListener(() => {
+      this.port = null;
+    });
+  }
+
+  unregisterPort(): void {
+    this.port = null;
+  }
     
   async enableTracking(): Promise<void> {
-
-    this.port = browser.runtime.connect({ name: "content-script" });
-
-    if (!this.port) {
-      console.error("Port is not connected. Cannot enable tracking.");
-      return;
-    }
 
     this.clickHandler = (e: Event) => {
       // e.stopPropagation();

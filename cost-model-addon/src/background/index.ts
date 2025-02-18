@@ -2,7 +2,7 @@ import { ContentMessageHandler } from './handlers/content-handler';
 import { TrackingMessageHandler } from './handlers/tracking-handler';
 import { WebSocketService } from './services/client-websocket';
 import { PortManager } from './port-manager';
-import { MessageType } from './types/message.types';
+import { MessageType } from '../common/message.types';
 
 // Initialize services and handlers
 const contentHandler = new ContentMessageHandler();
@@ -19,6 +19,10 @@ const handleConnect = (port: browser.runtime.Port): void => {
 
   portManager.registerPort(tabId, port);
   port.onMessage.addListener((message: any) => {
+    if (message.type === MessageType.REGISTER) {
+      console.log("Content script registered:", message.payload);
+      return;
+    }
     contentHandler.handleMessage(message, port.sender, (response) => {
       port.postMessage(response);
     });

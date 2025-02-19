@@ -2,16 +2,14 @@ import { MessageType, Message } from '../../common/message.types';
 import { TrackingState } from '../state/tracking-state';
 import { BaseMessageHandler } from './base-handler';
 import { PortManager } from '../port-manager';
-import { TabService } from '../services/tab-services';
+import { getActiveTab } from '../services/tab-services';
 
 export class TrackingMessageHandler extends BaseMessageHandler {
   private trackingState: TrackingState;
-  private tabService: TabService;
 
   constructor() {
     super();
     this.trackingState = TrackingState.getInstance();
-    this.tabService = new TabService();
   }
 
   getTrackingState(): boolean {
@@ -36,23 +34,23 @@ export class TrackingMessageHandler extends BaseMessageHandler {
       : this.trackingState.startTracking();
   }
 
-  async sendToActiveTab(portManager: PortManager): Promise<void> {
+  async sendToActiveTab(port: browser.runtime.Port): Promise<void> {
     try {
-      const activeTab = await this.tabService.getActiveTab();
+      const activeTab = await getActiveTab();
       if (!activeTab?.id) return;
       
-      await this.sendToTab(activeTab.id, portManager);
+      await this.sendToTab(activeTab.id, port);
     } catch (error) {
       console.error("Error sending tracking state to active tab:", error);
     }
   }
 
-  async sendToTab(tabId: number, portManager: PortManager): Promise<void> {
-    const port = portManager.getPort(tabId);
-    if (!port) {
-      console.log(`No registered port for tab ${tabId}`);
-      return;
-    }
+  async sendToTab(tabId: number, port: browser.runtime.Port): Promise<void> {
+    // const port = portManager.getPort(tabId);
+    // if (!port) {
+    //   console.log(`No registered port for tab ${tabId}`);
+    //   return;
+    // }
 
     const message = {
       type: "TRACKING_STATE",

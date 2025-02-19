@@ -3,6 +3,8 @@
     "name": "Custom API",
     "version": "1.0",
 
+    "devtools_page": "devtools.html",
+
     "background": {
       "scripts": ["background.bundle.js"]
     }, 

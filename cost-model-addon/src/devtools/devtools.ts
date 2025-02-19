@@ -1,11 +1,12 @@
 const port = browser.runtime.connect({ name: "devtools" });
 let listenerAdded = false;
 
-port.postMessage({ action: "REGISTER" });
 
 port.onMessage.addListener((message: any) => {
     if (message.action === "getHAR") {
         onGetHAR(message);
+    } else if (message.action === "register") {
+        console.log("Devtools registered:", message);
     }
 });
 
@@ -39,11 +40,11 @@ function onRequestFinished(request: any) {
         delete responseContent.comment;
         responseContent.text = content;
         
-        // port.postMessage({
-        //     tabId: browser.devtools.inspectedWindow.tabId,
-        //     action: "requestFinished",
-        //     request: JSON.stringify(request),
-        // });
+        port.postMessage({
+            tabId: browser.devtools.inspectedWindow.tabId,
+            action: "requestFinished",
+            request: JSON.stringify(request),
+        });
 
     }).catch((error: any) => {
         console.error("Error getting request content:", error);

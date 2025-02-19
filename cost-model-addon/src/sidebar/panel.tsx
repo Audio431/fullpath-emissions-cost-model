@@ -11,7 +11,7 @@ export default function SideBar() {
       const response = await browser.runtime.sendMessage({ type: "TOGGLE_TRACKING", from: "sidebar" });
       setIsTracking(!isTracking);
     } catch (error) {
-      console.error("Error:", browser.runtime.lastError);
+      console.error("Error:", error);
     }
   };
 

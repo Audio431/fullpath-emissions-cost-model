@@ -1,0 +1,11 @@
+
+https://carbonintensity.org.uk/
+
+cpu_time_s = cpu_time_in_microseconds/1000000 
+cpu_time_h = cpu_time_s/3600
+power_consumption_W = ... (your device)
+energy_consumption_kWh = cpu_time_h*power_consumption_W/1000
+CO2_emissions_g = energy_consumption_kWh*carbon_intensity
+
+
+https://www.carbontrust.com/our-work-and-impact/guides-reports-and-tools/carbon-impact-of-video-streaming

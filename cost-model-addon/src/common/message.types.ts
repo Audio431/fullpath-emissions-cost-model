@@ -1,15 +1,35 @@
 export enum MessageType {
   TRACKING_STATE = 'TRACKING_STATE',
   TOGGLE_TRACKING = 'TOGGLE_TRACKING',
+  EVENT_LISTENER = 'EVENT_LISTENER',
+  REGISTER = 'REGISTER',
+}
+
+export enum Action {
   CLICK_EVENT = 'CLICK_EVENT',
   SCROLL_EVENT = 'SCROLL_EVENT',
-  REGISTER = 'REGISTER'
 }
 
-export type MessageSource = 'background' | 'content' | 'sidebar';
+export type MessageSources = 'background' | 'content' | 'sidebar' | 'devtools';
 
-export interface Message {
-  type: MessageType;
-  from: MessageSource;
-  payload: any;
+interface MessagePayloads {
+  [MessageType.TRACKING_STATE]: { state: boolean };
+  [MessageType.TOGGLE_TRACKING]: { enabled: boolean };
+  [MessageType.EVENT_LISTENER]: { event: Action; details?: any };
+  [MessageType.REGISTER]: { id: string; info?: any };
+  
 }
+
+export interface Message<T extends MessageType = MessageType> {
+  type: T;
+  from?: MessageSources;
+  payload: MessagePayloads[T];
+}
+
+export type RuntimeMessage = {
+  [K in MessageType]: {
+    type: K;
+    from?: MessageSources;
+    payload: MessagePayloads[K];
+  }
+}[MessageType];

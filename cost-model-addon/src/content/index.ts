@@ -1,32 +1,27 @@
 import { EventHandler } from './event-handler';
-import { MessageType, Message } from '../common/message.types';
-import { inputBaseClasses } from '@mui/material';
+// import { MessageType, Message } from '../common/message.types';
+// import { inputBaseClasses } from '@mui/material';
+
+import { MessageType } from "../common/message.types";
 
 const eventHandler = new EventHandler();
 
-function initializePort(): browser.runtime.Port {
-  const port = browser.runtime.connect({ name: 'content-script' });
-  
-  // Register content script
-  port.postMessage({
-    type: MessageType.REGISTER,
-    from: 'content',
-    payload: 'Content script ready'
-  });
+let trackingPort: browser.runtime.Port;
 
-  // Handle messages from background
-  port.onMessage.addListener((message: any) => {
-    if (message.type === MessageType.TRACKING_STATE && message.from === 'background') {
-      if (message.payload) {
-        eventHandler.setPort(port);
-        eventHandler.startTracking();
-      } else {
-        eventHandler.stopTracking();
-      }
+browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    switch (msg.type) {
+        case 'TRACKING_STATE':
+            if (msg.payload.state) {
+                // Start tracking
+                trackingPort = browser.runtime.connect({ name: 'content-script'});
+                
+                eventHandler.setPort(trackingPort);
+                eventHandler.startTracking();
+            } else {
+                // Stop tracking
+                eventHandler.stopTracking();
+                trackingPort && trackingPort.disconnect();
+            }
+            break;
     }
-  });
-
-  return port;
-}
-
-initializePort();
+});

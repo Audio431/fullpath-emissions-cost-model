@@ -28,7 +28,7 @@
           ]
         },
         {
-          "name": "getCPU",
+          "name": "getCPUInfo",
           "type": "function",
           "description": "Get the CPU usage of the server.",
           "async": true,

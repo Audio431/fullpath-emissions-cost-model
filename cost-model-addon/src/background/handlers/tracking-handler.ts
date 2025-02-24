@@ -2,7 +2,7 @@ import { MessageType, Message } from '../../common/message.types';
 import { TrackingState } from '../state/tracking-state';
 import { BaseMessageHandler } from './base-handler';
 import { PortManager } from '../port-manager';
-import { getActiveTab } from '../services/tab-services';
+import { getActiveTab } from '../services/tab-service';
 
 export class TrackingMessageHandler extends BaseMessageHandler {
   private trackingState: TrackingState;

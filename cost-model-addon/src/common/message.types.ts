@@ -10,12 +10,29 @@ export enum Action {
   SCROLL_EVENT = 'SCROLL_EVENT',
 }
 
+export interface ClickEventPayload {
+  event: Action.CLICK_EVENT;
+  elementDetails: {
+    tagName: string;
+    id?: string;
+    classList?: string[];
+    href?: string;
+    innerText?: string;
+  };
+}
+
+export interface ScrollEventPayload {
+  event: Action.SCROLL_EVENT;
+  scrollY: number; // scrollY value
+}
+
+
 export type MessageSources = 'background' | 'content' | 'sidebar' | 'devtools';
 
 interface MessagePayloads {
   [MessageType.TRACKING_STATE]: { state: boolean };
   [MessageType.TOGGLE_TRACKING]: { enabled: boolean };
-  [MessageType.EVENT_LISTENER]: { event: Action; details?: any };
+  [MessageType.EVENT_LISTENER]: ClickEventPayload | ScrollEventPayload;
   [MessageType.REGISTER]: { id: string; info?: any };
   
 }

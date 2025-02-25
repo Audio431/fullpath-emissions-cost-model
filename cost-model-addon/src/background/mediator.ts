@@ -1,7 +1,6 @@
 import { MessagingService } from './services/messaging-service';
-import { RuntimeMessage, MessageType } from '../common/message.types';
-import { SidebarComponent, ContentComponent, DevToolsComponent } from './components';
-// import { StateManager } from './services/state-manager';
+import { RuntimeMessage, MessageType, Action } from '../common/message.types';
+import { SidebarComponent, DevToolsComponent, ContentComponent } from './components';
 import { getActiveTab } from './services/tab-service';
 
 export interface IMediator {
@@ -56,6 +55,7 @@ export class BackgroundMediator implements IMediator {
         this.messagingService.setMessageHandler(this.handleIncomingMessage.bind(this));
         this.messagingService.setPortMessageHandler(this.handlePortMessage.bind(this));
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
+        this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
 
         this.sidebarComponent = SidebarComponent.getInstance();
         this.devtoolsComponent = DevToolsComponent.getInstance();
@@ -100,18 +100,25 @@ export class BackgroundMediator implements IMediator {
     private handlePortMessage(message: any, port: browser.runtime.Port): void {
         switch (port.name) {
             case 'content-script':
-                if (message.type === MessageType.EVENT_LISTENER && message.payload.event === 'click') {
-                    console.log('Received click event from content script:', message.payload.details);
-                }
-                if (message.type === MessageType.EVENT_LISTENER && message.payload.event === 'scroll') {
-                    console.log('Received scroll event from content script:', message.payload.details);
-                }
+                if (message.type === MessageType.EVENT_LISTENER) {
+                    switch (message.payload.event) {
+                        case Action.CLICK_EVENT:
+                            console.log('Received click event:', message.payload.elementDetails);
+                            break;
+                        case Action.SCROLL_EVENT:
+                            console.log('Received scroll event:', message.payload.scrollY);
+                            break;
+                    }
+                };
+                break;
+
+            case 'devtools':
+                console.log('Received message from devtools:', message.action);
                 break;
         }
     }
 
     private async handleOnTabUpdate(tabId: number, tab: browser.tabs.Tab): Promise<void> {
-
         await this.messagingService.sendToTab(tabId, {
             type: MessageType.TRACKING_STATE,
             from: 'background',

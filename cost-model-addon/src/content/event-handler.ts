@@ -1,32 +1,35 @@
-import { MessageType } from '../common/message.types';
+import { MessageType, Action, ClickEventPayload, ScrollEventPayload } from '../common/message.types';
 
 
 export class EventHandler {
     private clickHandler: ((e: Event) => void) | null = null;
     private scrollHandler: ((e: Event) => void) | null = null;
     private port: browser.runtime.Port | null = null;
-    private readonly eventHandlers = new Map<MessageType, (payload: any) => void>();
-
+    private readonly eventHandlers = new Map<Action, (payload: any) => void>();
     constructor() {
         this.initializeEventHandlers();
     }
 
     private initializeEventHandlers(): void {
 
-        this.eventHandlers.set(MessageType.EVENT_LISTENER, (target: HTMLElement) => {
-            this.port?.postMessage({
-                type: MessageType.EVENT_LISTENER,
-                from: 'content',
-                payload: { event: 'click', details: target.outerHTML }
-            });
+        this.eventHandlers.set(Action.CLICK_EVENT, (payload) => {
+            this.port?.postMessage(
+                {
+                    type: MessageType.EVENT_LISTENER,
+                    from: 'content',
+                    payload
+                }
+            );
         });
 
-        this.eventHandlers.set(MessageType.EVENT_LISTENER, (scrollY: number) => {
-            this.port?.postMessage({
-                type: MessageType.EVENT_LISTENER,
-                from: 'content',
-                payload: { event: 'scroll', details: scrollY }
-            });
+        this.eventHandlers.set(Action.SCROLL_EVENT, (payload) => {
+            this.port?.postMessage(
+                {
+                    type: MessageType.EVENT_LISTENER,
+                    from: 'content',
+                    payload
+                }
+            );
         });
     }
 
@@ -51,19 +54,30 @@ export class EventHandler {
         }
 
         this.clickHandler = (e: Event) => {
-            const handler = this.eventHandlers.get(MessageType.EVENT_LISTENER);
- 
-            if (handler) {
-                handler({ event: 'click', details: e.target as HTMLElement });
-            }
+                const handler = this.eventHandlers.get(Action.CLICK_EVENT);
+                const target = e.target as HTMLElement;
+
+                const serializedTarget: ClickEventPayload = {
+                    event: Action.CLICK_EVENT, // ✅ Required event type
+                    elementDetails: {  // ✅ Wrap details inside elementDetails
+                      tagName: target.tagName,
+                      id: target.id || undefined,
+                      classList: Array.from(target.classList),
+                      href: target instanceof HTMLAnchorElement ? target.href : undefined,
+                      innerText: target.innerText,
+                    }
+                };
+                handler?.(serializedTarget);
         };
 
         this.scrollHandler = () => {
-            const handler = this.eventHandlers.get(MessageType.EVENT_LISTENER);
+            const handler = this.eventHandlers.get(Action.SCROLL_EVENT);
+            const payload: ScrollEventPayload = {
+                event: Action.SCROLL_EVENT,
+                scrollY: window.scrollY
+            };
 
-            if (handler) {
-                handler({ event: 'scroll', details: window.scrollY });
-            }
+            handler?.(payload);
         };
 
         window.addEventListener('click', this.clickHandler, true);

@@ -1,6 +1,6 @@
 import { MessagingService } from './services/messaging-service';
 import { RuntimeMessage, MessageType, Action } from '../common/message.types';
-import { SidebarComponent, DevToolsComponent, ContentComponent } from './components';
+import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './components';
 import { getActiveTab } from './services/tab-service';
 
 export interface IMediator {
@@ -51,19 +51,21 @@ export class BackgroundMediator implements IMediator {
     private constructor() {
         this.messagingService = MessagingService.getInstance();
         this.stateManager = StateManager.getInstance();
+        
+        this.sidebarComponent = SidebarComponent.getInstance();
+        this.sidebarComponent.setMediator(this);
+
+        this.devtoolsComponent = DevToolsComponent.getInstance();
+        this.devtoolsComponent.setMediator(this);
+        
+        this.contentComponent = ContentComponent.getInstance();
+        this.contentComponent.setMediator(this);
 
         this.messagingService.setMessageHandler(this.handleIncomingMessage.bind(this));
         this.messagingService.setPortMessageHandler(this.handlePortMessage.bind(this));
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
-
-        this.sidebarComponent = SidebarComponent.getInstance();
-        this.devtoolsComponent = DevToolsComponent.getInstance();
-        this.contentComponent = ContentComponent.getInstance();
-
-        this.sidebarComponent.setMediator(this);
-        this.devtoolsComponent.setMediator(this);
-        this.contentComponent.setMediator(this);
+        
     }
 
     public static getInstance(): BackgroundMediator {
@@ -127,7 +129,7 @@ export class BackgroundMediator implements IMediator {
     }
 
     // Example notify pattern:
-    public notify(sender: any, event: RuntimeMessage): void {
+    public notify(sender: BaseComponent, event: RuntimeMessage): void {
         if (sender instanceof SidebarComponent) {
             this.handleSidebarEvent(event);
         } else if (sender instanceof ContentComponent) {
@@ -138,18 +140,22 @@ export class BackgroundMediator implements IMediator {
     }
 
     private async handleSidebarEvent(event: RuntimeMessage): Promise<void> {
-        switch (event.type) {
-            case MessageType.TOGGLE_TRACKING:
-                const newState = !this.stateManager.getState().isTracking;
-                await this.stateManager.setState({ isTracking: newState });
+        try {
+            switch (event.type) {
+                case MessageType.TOGGLE_TRACKING:
+                    const newState = !this.stateManager.getState().isTracking;
+                    await this.stateManager.setState({ isTracking: newState });
 
-                const activeTab = await getActiveTab()!;
-                await this.messagingService.sendToTab(activeTab?.id!, {
-                    type: MessageType.TRACKING_STATE,
-                    from: 'background',
-                    payload: { state: newState }
-                }, activeTab!);
-                break;
+                    const activeTab = await getActiveTab()!;
+                    await this.messagingService.sendToTab(activeTab?.id!, {
+                        type: MessageType.TRACKING_STATE,
+                        from: 'background',
+                        payload: { state: newState }
+                    }, activeTab!);
+                    break;
+            }
+        } catch (error) {
+            console.error('Error handling sidebar event:', error);
         }
     }
 

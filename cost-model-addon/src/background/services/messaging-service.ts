@@ -10,6 +10,7 @@ export class MessagingService {
   private callback?: MessageCallback;
   private portCallback?: PortMessageCallback;
   private updateCallback?: TabCallback;
+  private updateActiveTabCallback?: TabCallback;
 
   private constructor() {
     browser.runtime.onMessage.addListener((message: RuntimeMessage, sender) => {
@@ -35,11 +36,9 @@ export class MessagingService {
     });
 
     browser.tabs.onActivated.addListener((activeInfo) => {
-      this.updateCallback && this.updateCallback(activeInfo.tabId, {}, {} as browser.tabs.Tab);
+      this.updateActiveTabCallback && this.updateActiveTabCallback(activeInfo.tabId, {}, {} as browser.tabs.Tab);
     });
   }
-
-
 
   public static getInstance(): MessagingService {
     if (!MessagingService.instance) {
@@ -60,19 +59,23 @@ export class MessagingService {
     this.portCallback = callback;
   }
 
-  public setOnActiveTabUpdateListener(callback: MessageCallback): void {
-    this.callback = callback;
+  public setOnActiveTabUpdateListener(callback: TabCallback): void {
+    this.updateActiveTabCallback= callback;
   }
 
-  public async sendToTab(tabId: number, msg: RuntimeMessage, tab: browser.tabs.Tab): Promise<void> {
+  public async sendToTab(tabId: number, msg: RuntimeMessage, tab: browser.tabs.Tab, retries = 5): Promise<void> {
       await browser.tabs.sendMessage(tabId, msg).then((response) => {
         response && console.log('Response from tab:', response);
       }).catch((error) => {
         if (error.message === 'Could not establish connection. Receiving end does not exist.') {
-          console.log('Tab is not ready yet:', tab);
-          setTimeout(() => {
-            this.sendToTab(tabId, msg, tab);
-          }, 1000);
+          if (retries > 0) {
+            console.log(`Tab is not ready yet: ${tab.url}. Retrying in 1 second... (Attempts left: ${retries})`);
+            setTimeout(() => {
+              this.sendToTab(tabId, msg, tab, retries - 1);
+            }, 1000);
+          } else {
+            console.error(`Failed to send message to tab ${tabId} after multiple attempts.`);
+          }
         } else {
           console.error('Error sending message to tab:', error);
         }

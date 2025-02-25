@@ -14,7 +14,6 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             if (msg.payload.state) {
                 // Start tracking
                 trackingPort = browser.runtime.connect({ name: 'content-script'});
-                
                 eventHandler.setPort(trackingPort);
                 eventHandler.startTracking();
             } else {

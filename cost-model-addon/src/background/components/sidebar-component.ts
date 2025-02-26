@@ -1,7 +1,6 @@
 import { BaseComponent } from "./base-component";
-import { MessageType } from "../../common/message.types";
 import { IMediator } from "../mediator";
-
+import { MessageType } from "../../common/message.types";
 
 export class SidebarComponent extends BaseComponent {
   private static instance: SidebarComponent;

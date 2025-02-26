@@ -1,7 +1,7 @@
 const port = browser.runtime.connect({ name: "devtools" });
 let listenerAdded = false;
 
-port.postMessage({});
+port.postMessage("Hi from devtools");
 
 port.onMessage.addListener((message: any) => {
     if (message.action === "getHAR") {

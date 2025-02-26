@@ -1,5 +1,3 @@
-import { MessageType, RuntimeMessage } from '../../common/message.types';
-
 type MessageCallback = (message: RuntimeMessage, sender: any) => void;
 type PortMessageCallback = (message: RuntimeMessage, port: browser.runtime.Port) => void;
 type TabCallback = (tabId: number, changeInfo: any, tab: browser.tabs.Tab) => void;

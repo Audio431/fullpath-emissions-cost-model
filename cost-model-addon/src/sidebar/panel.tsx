@@ -1,6 +1,7 @@
 import Button  from '@mui/material/Button';
 import * as React from 'react';
 import EventsBox from './eventBox';
+import { MessageType } from '../common/message.types';
 
 export default function SideBar() {
   
@@ -13,7 +14,7 @@ export default function SideBar() {
   const handleTrackingButton = async () => {
     try {
       const response = await browser.runtime.sendMessage(
-        { type: "TOGGLE_TRACKING", 
+        { type: MessageType.TOGGLE_TRACKING,
           from: "sidebar", 
           payload: { enabled: !isTracking }
         });

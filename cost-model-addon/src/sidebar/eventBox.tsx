@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { List, ListItem, Card, CardContent, Typography, Box } from "@mui/material";
 
 

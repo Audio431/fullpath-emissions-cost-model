@@ -1,5 +1,4 @@
-import { MessageType, Action, ClickEventPayload, ScrollEventPayload } from '../common/message.types';
-
+import { Action, MessageType } from '../common/message.types';
 
 export class EventHandler {
     private clickHandler: ((e: Event) => void) | null = null;

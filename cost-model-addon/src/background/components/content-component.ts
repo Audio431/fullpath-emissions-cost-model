@@ -1,5 +1,5 @@
-import { BaseComponent } from './base-component';
 import { MessageType } from '../../common/message.types';
+import { BaseComponent } from './base-component';
 
 export class ContentComponent extends BaseComponent {
     private static instance: ContentComponent;

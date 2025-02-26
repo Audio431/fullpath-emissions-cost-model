@@ -1,14 +1,10 @@
 import { EventHandler } from './event-handler';
-// import { MessageType, Message } from '../common/message.types';
-// import { inputBaseClasses } from '@mui/material';
-
-import { MessageType } from "../common/message.types";
 
 const eventHandler = new EventHandler();
 
 let trackingPort: browser.runtime.Port;
 
-browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((msg : RuntimeMessage, sender, sendResponse) => {
     switch (msg.type) {
         case 'TRACKING_STATE':
             if (msg.payload.state) {

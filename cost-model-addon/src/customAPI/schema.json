@@ -26,6 +26,13 @@
               "description": "The second number to add."
             }
           ]
+        },
+        {
+          "name": "getCPUInfo",
+          "type": "function",
+          "description": "Get the CPU usage of the server.",
+          "async": true,
+          "parameters": []
         }
       ]
     }

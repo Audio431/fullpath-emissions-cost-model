@@ -1,16 +1,14 @@
 import { MessagingService } from './services/messaging-service';
-import { RuntimeMessage, MessageType, Action } from '../common/message.types';
 import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './components';
 import { getActiveTab } from './services/tab-service';
+import { MessageType, Action } from '../common/message.types';
 
 export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;
 }
 
-// state-manager.ts
 export interface IAppState {
     isTracking: boolean;
-    // add more as needed
 }
 
 class StateManager {
@@ -36,7 +34,6 @@ class StateManager {
         // await browser.storage.local.set({ state: this.state });
     }
 }
-
 
 export class BackgroundMediator implements IMediator {
     private static instance: BackgroundMediator;
@@ -115,6 +112,7 @@ export class BackgroundMediator implements IMediator {
                 break;
 
             case 'devtools':
+                console.log('Received message from devtools:');
                 console.log('Received message from devtools:', message.action);
                 break;
         }

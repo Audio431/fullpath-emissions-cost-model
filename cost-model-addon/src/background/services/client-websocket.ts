@@ -1,5 +1,4 @@
 import { api } from './api';
-import { Message } from '../../common/message.types';
 
 export class WebSocketService {
     private static instance: WebSocketService;

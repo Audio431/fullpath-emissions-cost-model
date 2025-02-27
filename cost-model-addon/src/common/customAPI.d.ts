@@ -10,10 +10,33 @@ declare global {
     }
 
     interface ChildProcessInfo extends ProcessInfo {
-        childId: number;
+        childID: number;
         memory: number;
         origin: string;
         pid: number;
+        threads: threads[];
+        windows: windows[];
+        utilityActors: utilityActors[];
+    }
+
+    interface threads {
+        tid: number;
+        name: string;
+        cpuTime: number;
+        cpuKernelTime: number;
+        cpuCycleCount: number;
+    }
+
+   interface windows {
+        documentURI: string;
+        documentTitle: string;
+        outerWindowId: number;
+        isProcessRoot: boolean;
+        isInProcess: boolean;
+    }
+
+    interface utilityActors {
+        actorName: string;
     }
 
     interface MainProcessInfo extends ProcessInfo {
@@ -26,6 +49,7 @@ declare global {
 
     interface MyAPI {
         getCPUInfo(): Promise<MainProcessInfo>;
+        getOuterWindowID(): Promise<Map<number, string>>;
     }
 
     namespace browser {

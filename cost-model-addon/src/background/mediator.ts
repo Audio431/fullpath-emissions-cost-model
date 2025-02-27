@@ -1,7 +1,9 @@
 import { MessagingService } from './services/messaging-service';
 import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './components';
-import { getActiveTab } from './services/tab-service';
+import { getActiveTab, getOuterWindowID } from './services/tab-service';
 import { MessageType, Action } from '../common/message.types';
+import { WebSocketService } from './services/client-websocket';
+import { handleCPUUsageRequest } from './services/cpu-usage-service';
 
 export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;
@@ -40,6 +42,7 @@ export class BackgroundMediator implements IMediator {
 
     private messagingService: MessagingService;
     private stateManager: StateManager;
+    private websocketService: WebSocketService;
 
     private sidebarComponent: SidebarComponent;
     private devtoolsComponent: DevToolsComponent;
@@ -48,6 +51,7 @@ export class BackgroundMediator implements IMediator {
     private constructor() {
         this.messagingService = MessagingService.getInstance();
         this.stateManager = StateManager.getInstance();
+        this.websocketService = WebSocketService.getInstance("BackgroundMediator");
         
         this.sidebarComponent = SidebarComponent.getInstance();
         this.sidebarComponent.setMediator(this);
@@ -62,6 +66,7 @@ export class BackgroundMediator implements IMediator {
         this.messagingService.setPortMessageHandler(this.handlePortMessage.bind(this));
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
+
         
     }
 
@@ -102,6 +107,7 @@ export class BackgroundMediator implements IMediator {
                 if (message.type === MessageType.EVENT_LISTENER) {
                     switch (message.payload.event) {
                         case Action.CLICK_EVENT:
+                            this.contentComponent.onClicked(message)
                             console.log('Received click event:', message.payload.elementDetails);
                             break;
                         case Action.SCROLL_EVENT:
@@ -131,7 +137,7 @@ export class BackgroundMediator implements IMediator {
         if (sender instanceof SidebarComponent) {
             this.handleSidebarEvent(event);
         } else if (sender instanceof ContentComponent) {
-            // this.handleContentEvent(event);
+            this.handleContentEvent(event);
         } else if (sender instanceof DevToolsComponent) {
             // handle devtools event
         }
@@ -150,6 +156,12 @@ export class BackgroundMediator implements IMediator {
                         from: 'background',
                         payload: { state: newState }
                     }, activeTab!);
+
+                    if (newState) {
+                        this.websocketService.connect();
+                    } else {
+                        this.websocketService.disconnect();
+                    }
                     break;
             }
         } catch (error) {
@@ -157,15 +169,26 @@ export class BackgroundMediator implements IMediator {
         }
     }
 
-    // private async handleContentEvent(event: RuntimeMessage) {
-    //     switch (event.type) {
-    //         case MessageType.TRACKING_STATE:
-    //             await this.messagingService.sendToRuntime({
-    //                 type: MessageType.TRACKING_STATE,
-    //                 payload: { state: this.stateManager.getState().isTracking;}
-    //             });
-    //             break;
-    //     }
-    // }
+    private async handleContentEvent(event: RuntimeMessage) {
+        switch (event.type) {
+            case MessageType.CPU_USAGE_REQUEST:
+                
+                const cpuinfo = await handleCPUUsageRequest();
+                
+                const activeTab = await getActiveTab();
+                activeTab && console.log('Tab CPU Usage:', activeTab.url);
 
+                const test = getOuterWindowID();
+                console.log('Outer Window ID:', test);
+                (await getOuterWindowID()).forEach( async (value, key) => {
+                    console.log('Outer Window ID:', key, value);
+                }); 
+
+                this.contentComponent.onCPUUsageResponse(cpuinfo);
+
+                // this.websocketService.sendMessage({ type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
+                // await this.messagingService.sendToContent(event, { type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
+                break;
+        }
+    }
 }

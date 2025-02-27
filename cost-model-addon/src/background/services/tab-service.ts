@@ -12,3 +12,9 @@ export async function getTabByUrl(url: string): Promise<browser.tabs.Tab | undef
     const tabs = await browser.tabs.query({ currentWindow: true });
     return tabs.find(tab => tab.url === url);
 }
+
+export async function getOuterWindowID(): Promise<Map<number, string>> {
+    const outerWindowIDMap =  await browser.myAPI.getOuterWindowID()
+    console.log(outerWindowIDMap);
+    return outerWindowIDMap;
+}

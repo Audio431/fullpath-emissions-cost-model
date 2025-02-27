@@ -3,7 +3,8 @@ import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } 
 import { getActiveTab, getOuterWindowID } from './services/tab-service';
 import { MessageType, Action } from '../common/message.types';
 import { WebSocketService } from './services/client-websocket';
-import { handleCPUUsageRequest } from './services/cpu-usage-service';
+import { handleCPUUsageRequest, monitorCpuUsage, MonitorCpuUsageController } from './services/cpu-usage-service';
+import { act } from 'react';
 
 export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;
@@ -48,17 +49,19 @@ export class BackgroundMediator implements IMediator {
     private devtoolsComponent: DevToolsComponent;
     private contentComponent: ContentComponent;
 
+    private cpuMonitor: MonitorCpuUsageController | null = null;
+
     private constructor() {
         this.messagingService = MessagingService.getInstance();
         this.stateManager = StateManager.getInstance();
-        this.websocketService = WebSocketService.getInstance("BackgroundMediator");
-        
+        this.websocketService = WebSocketService.getInstance();
+
         this.sidebarComponent = SidebarComponent.getInstance();
         this.sidebarComponent.setMediator(this);
 
         this.devtoolsComponent = DevToolsComponent.getInstance();
         this.devtoolsComponent.setMediator(this);
-        
+
         this.contentComponent = ContentComponent.getInstance();
         this.contentComponent.setMediator(this);
 
@@ -67,7 +70,6 @@ export class BackgroundMediator implements IMediator {
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
 
-        
     }
 
     public static getInstance(): BackgroundMediator {
@@ -78,7 +80,9 @@ export class BackgroundMediator implements IMediator {
     }
 
     /**
-     * The Mediator's job: handle inbound messages and route them to the correct "component" or method.
+     * Handle incoming runtime messages from content scripts, devtools, and sidebar
+     * @param message @type RuntimeMessage
+     * @param sender @type any
      */
     private handleIncomingMessage(message: RuntimeMessage, sender: any): void {
         switch (message.from) {
@@ -132,14 +136,13 @@ export class BackgroundMediator implements IMediator {
         }, tab);
     }
 
-    // Example notify pattern:
     public notify(sender: BaseComponent, event: RuntimeMessage): void {
         if (sender instanceof SidebarComponent) {
             this.handleSidebarEvent(event);
         } else if (sender instanceof ContentComponent) {
             this.handleContentEvent(event);
         } else if (sender instanceof DevToolsComponent) {
-            // handle devtools event
+            this.handleDevtoolsEvent(event);
         }
     }
 
@@ -151,16 +154,30 @@ export class BackgroundMediator implements IMediator {
                     await this.stateManager.setState({ isTracking: newState });
 
                     const activeTab = await getActiveTab()!;
-                    await this.messagingService.sendToTab(activeTab?.id!, {
+                    activeTab?.id && await this.messagingService.sendToTab(activeTab.id, {
                         type: MessageType.TRACKING_STATE,
                         from: 'background',
                         payload: { state: newState }
-                    }, activeTab!);
+                    }, activeTab);
 
+                    const cpuSpikeListener = (event: Event) => {
+                        const customEvent = event as CustomEvent<{ usageRate: number; cpuCycleCount: number }>;
+                        console.log("CPU spike detected:", customEvent.detail);
+                    };
+                  
                     if (newState) {
-                        this.websocketService.connect();
+                        this.websocketService.connect("BackgroundMediator");
+                        this.cpuMonitor = monitorCpuUsage(0);
+
+                        addEventListener('cpu-spike', cpuSpikeListener);
                     } else {
                         this.websocketService.disconnect();
+                        if (this.cpuMonitor) {
+                            this.cpuMonitor.cancel();
+                            this.cpuMonitor = null;
+                            
+                            removeEventListener('cpu-spike', cpuSpikeListener);
+                        }
                     }
                     break;
             }
@@ -172,22 +189,26 @@ export class BackgroundMediator implements IMediator {
     private async handleContentEvent(event: RuntimeMessage) {
         switch (event.type) {
             case MessageType.CPU_USAGE_REQUEST:
-                
+
                 const cpuinfo = await handleCPUUsageRequest();
-                
                 const activeTab = await getActiveTab();
-                activeTab && console.log('Tab CPU Usage:', activeTab.url);
+                const outerWindowIDMap = await getOuterWindowID();
 
-                const test = getOuterWindowID();
-                console.log('Outer Window ID:', test);
-                (await getOuterWindowID()).forEach( async (value, key) => {
-                    console.log('Outer Window ID:', key, value);
-                }); 
+                this.contentComponent.onCPUUsageRequest(cpuinfo, outerWindowIDMap, activeTab);
 
-                this.contentComponent.onCPUUsageResponse(cpuinfo);
+                break;
 
+            case MessageType.CPU_USAGE_RESPONSE:
                 // this.websocketService.sendMessage({ type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
                 // await this.messagingService.sendToContent(event, { type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
+                break;
+        }
+    }
+
+    private async handleDevtoolsEvent(event: RuntimeMessage) {
+        switch (event.type) {
+            case MessageType.CPU_USAGE_REQUEST:
+                // handle CPU usage request from devtools
                 break;
         }
     }

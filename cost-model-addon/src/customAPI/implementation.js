@@ -1,11 +1,11 @@
-/** 
+/**
  * This privileged extension API is required to access the memory reporter.
  * firefox's about:config:
  * 1. xpinstall.signatures.required = false
  * 2. extensions.experiments.enabled = true
  */
 
-/** 
+/**
  * Name of the API requires to be same
  * 1. variable (this.myAPI)
  * 2. return value (myAPI) in getAPI function
@@ -14,8 +14,7 @@
  * 5. namespace in schema.json
  */
 
-
-/** 
+/**
  * Types of the return values of the functions are defined in JSDoc comments.
  */
 
@@ -84,8 +83,6 @@
  * @typedef {Object} utilityActors
  * @property {string} actorName
  */
-
-
 
 ChromeUtils.defineESModuleGetters(this, {
   FileUtils: "resource://gre/modules/FileUtils.sys.mjs",
@@ -174,7 +171,6 @@ this.myAPI = class extends ExtensionAPI {
             let main = await ChromeUtils.requestProcInfo();
 
             main.children = main.children.map((child) => {
-
               return {
                 pid: child.pid,
                 memory: child.memory,
@@ -210,14 +206,13 @@ this.myAPI = class extends ExtensionAPI {
                   : [],
               };
             });
-            
+
             main.threads = main.threads.map((thread) => {
               let { tid, name, cpuTime, cpuCycleCount } = thread;
               return { tid, name, cpuTime, cpuCycleCount };
             });
 
             return main;
-
           } catch (e) {
             console.error("Error in getCPU:", e);
             return e;
@@ -236,7 +231,7 @@ this.myAPI = class extends ExtensionAPI {
           }
 
           return tabFluentArgs;
-        }
+        },
       },
     };
   }

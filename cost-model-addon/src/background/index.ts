@@ -1,8 +1,6 @@
 import { BackgroundMediator } from "./mediator";
-import { monitorCpuUsage } from "./services/cpu-usage-service";
 
 BackgroundMediator.getInstance();
-
 
 browser.action.onClicked.addListener(() => {
     browser.sidebarAction.open();

@@ -3,26 +3,23 @@ import { api } from './api';
 export class WebSocketService {
     private static instance: WebSocketService;
     private static ws: WebSocket | null; 
-    private clientId: string;
+    private clientId: string = '';
 
-    private constructor(clientId: string) {
-        this.clientId = clientId;
-    }
-
-    public static getInstance(clientId: string): WebSocketService {
+    public static getInstance(): WebSocketService {
         if (!WebSocketService.instance) {
-            WebSocketService.instance = new WebSocketService(clientId);
+            WebSocketService.instance = new WebSocketService();
         }
         return WebSocketService.instance;
     }
 
-    public async connect(): Promise<void> {
+    public async connect(clientId: string): Promise<void> {
         try {
             if (WebSocketService.ws) {
                 console.log('WebSocket connection already exists');
                 return;
             }
 
+            this.clientId = clientId;
             await api.startProcess(this.clientId);
             
             // WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
@@ -54,7 +51,7 @@ export class WebSocketService {
         }
     }
 
-    public sendMessage(message: Message): void {
+    public sendMessage(message: any): void {
         if (WebSocketService.ws?.readyState === WebSocket.OPEN) {
             WebSocketService.ws.send(JSON.stringify(message));
         }

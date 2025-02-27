@@ -4,57 +4,49 @@ import { BaseComponent } from './base-component';
 
 export class ContentComponent extends BaseComponent {
     private static instance: ContentComponent;
-  
+
     private constructor() {
-      super();
+        super();
     }
-  
+
     public static getInstance(): ContentComponent {
-      if (!this.instance) {
-        this.instance = new ContentComponent();
-      }
-      return this.instance;
+        if (!this.instance) {
+            this.instance = new ContentComponent();
+        }
+        return this.instance;
     }
-  
+
     public updateTrackingState(state: boolean): void {
-      this.mediator.notify(this, {
-        type: MessageType.TRACKING_STATE,
-        payload: { state }
-      });
+        this.mediator.notify(this, {
+            type: MessageType.TRACKING_STATE,
+            payload: { state }
+        });
     }
 
     public onClicked(message: any): void {
-      this.mediator.notify(this, {
-        type: MessageType.CPU_USAGE_REQUEST,
-        payload: message
-      });
+        this.mediator.notify(this, {
+            type: MessageType.CPU_USAGE_REQUEST,
+            payload: message
+        });
     }
-    
-    public async onCPUUsageResponse(CPUInfo: MainProcessInfo): Promise<void> {
-      //  const childrenProcessMap : Map = new Map<ChildProcessInfo["origin"], ChildProcessInfo>();
-       const children = CPUInfo.children.map((child: ChildProcessInfo) => {
-          return {
-            [child.origin]: {
-              cpuCycleCount: child.cpuCycleCount,
-              cpuTime: child.cpuTime,
-              childId: child.childID,
-              memory: child.memory,
-              pid: child.pid,
-              origin: child.origin,
-              // threads: child.threads,
-              // windows: child.windows,
-            }
-          };
-       })
 
-       getActiveTab().then((tab) => {
-        console.log("Active Tab: ", tab?.id);
-       });
+    public async onCPUUsageRequest(CPUInfo: MainProcessInfo, outerWindowIDMap: Map<number, string>, activeTab?: browser.tabs.Tab): Promise<void> {
 
-       console.log("Children Process Map: ", children);
+        const children = CPUInfo.children.filter((child: ChildProcessInfo) =>
+            child.windows.some(window => outerWindowIDMap.has(window.outerWindowId))
+        );
 
-       const sumChildMemory = CPUInfo.children.reduce((acc: number, child: ChildProcessInfo) => {
-          return acc + child.memory;
-        }, 0);
+        const matchingEntry = Array.from(outerWindowIDMap.entries()).find(([id]) =>
+            children.some(child =>
+                child.windows.some(window => window.outerWindowId === id)
+            )
+        );
+
+        const tabFluentName = matchingEntry ? matchingEntry[1] : undefined;
+
+        return this.mediator.notify(this, {
+            type: MessageType.CPU_USAGE_RESPONSE,
+            payload: { tabFluentName }
+        });
     }
 }

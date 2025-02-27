@@ -42,7 +42,14 @@
           "description": "Get the CPU usage of the server.",
           "async": true,
           "parameters": []
-        }
+        },
+        {
+          "name": "getOuterWindowID",
+          "type": "function",
+          "description": "Get the outer window ID.",
+          "async": true,
+          "parameters": []
+        } 
       ]
     }
 ]

@@ -1,53 +1,61 @@
+import { WebSocketService } from "./client-websocket";
+
 export async function handleCPUUsageRequest(): Promise<MainProcessInfo> {
     const CPUInfo = await browser.myAPI.getCPUInfo();
     return CPUInfo;
 }
 
-export async function monitorCpuUsage(cpuSpikeThreshold: number): Promise<void> {
-    let start = Date.now();
-    let prev: { cpuTime: number, cpuCycleCount: number } | null = null;
+export interface MonitorCpuUsageController {
+  cancel: () => void;
+  promise: Promise<void>;
+}
+
+export function monitorCpuUsage(cpuSpikeThreshold: number): MonitorCpuUsageController {
+  let cancelled = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let prev: { time: number, cpuTime: number, cycles: number } | null = null;
+  
+  const promise = new Promise<void>((resolve) => {
     
-    return new Promise(async (resolve, reject) => {
-      const checkCpu = async () => {
-        try {
-          const now = Date.now();
-          const NS_PER_MS = 1000 * 1000
-          const deltaT = (now - start) * NS_PER_MS;
+    const monitorCycle = async () => {
+      if (cancelled) {
+        resolve();
+        return;
+      }
+      
+      try {
+        const now = Date.now();
+        const { cpuTime, cpuCycleCount } = await handleCPUUsageRequest();
+        
+        if (prev) {
+          const elapsedNs = (now - prev.time) * 1_000_000;
+          const usageRate = (cpuTime - prev.cpuTime) / elapsedNs;
+          // const isActive = usageRate > 0 || cpuCycleCount > prev.cycles;
 
           
-          const cur = await handleCPUUsageRequest().then((data) => {
-            return {
-              cpuTime: data.cpuTime,
-              cpuCycleCount: data.cpuCycleCount
-            };
-          });
-            
-          const result = {
-            timestamp: now,
-            deltaT,
-            totalCpu: cur.cpuTime,
-            slopeCpu: (cur.cpuTime - (prev ? prev.cpuTime : 0)) / deltaT,
-            cpuCycleCount: cur.cpuCycleCount,
-            active: false
-          };
-        
-          result.active = !!result.slopeCpu || cur.cpuCycleCount > (prev ? prev.cpuCycleCount : 0);
-        
-          if (result.slopeCpu > cpuSpikeThreshold) {
-            console.warn(`CPU spike detected: ${result.slopeCpu.toFixed(3)}`);
+          if (usageRate > cpuSpikeThreshold) {
+            dispatchEvent(new CustomEvent("cpu-spike", { 
+              detail: { usageRate, cpuCycleCount: cpuCycleCount } 
+            }));
           }
-          
-          prev = {
-            cpuTime: cur.cpuTime,
-            cpuCycleCount: cur.cpuCycleCount
-          };
-        
-          setTimeout(checkCpu, 1000); // Check every second, adjust as needed
-        } catch (error) {
-          reject(error);
         }
-      };
-
-      checkCpu();
-    });
+        
+        prev = { time: now, cpuTime, cycles: cpuCycleCount };
+      } catch (error) {
+        console.error("CPU monitoring error:", error);
+      }
+      
+      timer = setTimeout(monitorCycle, 1000);
+    };
+    
+    monitorCycle();
+  });
+  
+  return {
+    cancel: () => {
+      cancelled = true;
+      if (timer!== null) clearTimeout(timer);
+    },
+    promise
+  };
 }

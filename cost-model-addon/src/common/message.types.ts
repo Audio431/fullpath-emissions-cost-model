@@ -3,6 +3,8 @@ enum MessageType {
   TOGGLE_TRACKING = 'TOGGLE_TRACKING',
   EVENT_LISTENER = 'EVENT_LISTENER',
   REGISTER = 'REGISTER',
+  CPU_USAGE_REQUEST = 'CPU_USAGE_REQUEST',
+  CPU_USAGE_RESPONSE = 'CPU_USAGE_RESPONSE',
 }
 
 enum Action {
@@ -36,7 +38,8 @@ declare global {
     [MessageType.TOGGLE_TRACKING]: { enabled: boolean };
     [MessageType.EVENT_LISTENER]: ClickEventPayload | ScrollEventPayload;
     [MessageType.REGISTER]: { id: string; info?: any };
-
+    [MessageType.CPU_USAGE_REQUEST]: any;
+    [MessageType.CPU_USAGE_RESPONSE]: any;
   }
 
   interface Message<T extends MessageType = MessageType> {

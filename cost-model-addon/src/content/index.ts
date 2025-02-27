@@ -20,3 +20,4 @@ browser.runtime.onMessage.addListener((msg : RuntimeMessage, sender, sendRespons
             break;
     }
 });
+

@@ -3,8 +3,8 @@ enum MessageType {
   TOGGLE_TRACKING = 'TOGGLE_TRACKING',
   EVENT_LISTENER = 'EVENT_LISTENER',
   REGISTER = 'REGISTER',
-  CPU_USAGE_REQUEST = 'CPU_USAGE_REQUEST',
-  CPU_USAGE_RESPONSE = 'CPU_USAGE_RESPONSE',
+  CPU_USAGE = 'CPU_USAGE',
+  PREPARE_TO_CLOSE = 'PREPARE_TO_CLOSE',
 }
 
 enum Action {
@@ -17,11 +17,12 @@ declare global {
   interface ClickEventPayload {
     event: Action.CLICK_EVENT;
     elementDetails: {
-      tagName: string;
-      id?: string;
-      classList?: string[];
-      href?: string;
-      innerText?: string;
+      // tagName: string;
+      // id?: string;
+      // classList?: string[];
+      // href?: string;
+      // innerText?: string;
+      target: HTMLElement;
     };
   }
 
@@ -38,8 +39,8 @@ declare global {
     [MessageType.TOGGLE_TRACKING]: { enabled: boolean };
     [MessageType.EVENT_LISTENER]: ClickEventPayload | ScrollEventPayload;
     [MessageType.REGISTER]: { id: string; info?: any };
-    [MessageType.CPU_USAGE_REQUEST]: any;
-    [MessageType.CPU_USAGE_RESPONSE]: any;
+    [MessageType.CPU_USAGE]: any;
+    [MessageType.PREPARE_TO_CLOSE]: any;
   }
 
   interface Message<T extends MessageType = MessageType> {

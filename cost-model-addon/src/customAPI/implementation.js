@@ -182,7 +182,6 @@ this.myAPI = class extends ExtensionAPI {
 
                 windows: Array.isArray(child.windows)
                   ? child.windows.map((window) => ({
-                      documentURI: String(window.documentURI),
                       documentTitle: window.documentTitle,
                       outerWindowId: window.outerWindowId,
                       isProcessRoot: window.isProcessRoot,
@@ -219,19 +218,41 @@ this.myAPI = class extends ExtensionAPI {
           }
         },
 
-        async getOuterWindowID() {
-          let tabFluentArgs = new Map();
+        async getTabOuterWindowIDs() {
+          let tabs = new Map();
 
           for (let win of Services.wm.getEnumerator("navigator:browser")) {
             let tabbrowser = win.gBrowser;
             for (let browser of tabbrowser.browsers) {
               const tab = browser.getTabBrowser().getTabForBrowser(browser);
-              tabFluentArgs.set(browser.outerWindowID, tab.label);
+              tabs.set(browser.outerWindowID, tab.label);
             }
           }
-
-          return tabFluentArgs;
+          
+          return tabs;
         },
+
+        async getCollapsSubframe(pid) {
+          let main = await ChromeUtils.requestProcInfo();
+          let child = main.children.find((child) => child.pid === pid);
+          let windows = child.windows;
+          let collapsible = new Map();
+          let result = [];
+          for (let win of windows) {
+            if (win.tab || win.addon) {
+              result.push(win);
+              continue;
+            }
+            let prev = collapsible.get(win.documentURI.prePath);
+            if (prev) {
+              prev.count += 1;
+            } else {
+              collapsible.set(win.documentURI.prePath, win);
+              result.push(win);
+            }
+          }
+          return result;
+        }
       },
     };
   }

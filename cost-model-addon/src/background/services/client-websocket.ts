@@ -1,3 +1,4 @@
+import { MessageType } from '../../common/message.types';
 import { api } from './api';
 
 export class WebSocketService {
@@ -22,8 +23,8 @@ export class WebSocketService {
             this.clientId = clientId;
             await api.startProcess(this.clientId);
             
-            // WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
-            WebSocketService.ws = new WebSocket(`wss://fullpath-energyemissions-cost-model.onrender.com/?clientId=${this.clientId}`);
+            WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
+            // WebSocketService.ws = new WebSocket(`wss://fullpath-energyemissions-cost-model.onrender.com/?clientId=${this.clientId}`);
             
             WebSocketService.ws.onopen = () => {
                 console.log('WebSocket connection established');
@@ -45,10 +46,7 @@ export class WebSocketService {
     }
 
     public disconnect(): void {
-        if (WebSocketService.ws) {
-            WebSocketService.ws.close();
-            WebSocketService.ws = null;
-        }
+        WebSocketService.ws?.send(JSON.stringify({ type: MessageType.PREPARE_TO_CLOSE, payload: {} }));
     }
 
     public sendMessage(message: any): void {

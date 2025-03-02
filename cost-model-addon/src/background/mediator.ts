@@ -1,10 +1,9 @@
 import { MessagingService } from './services/messaging-service';
 import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './components';
-import { getActiveTab, getOuterWindowID } from './services/tab-service';
+import { getActiveTab, getTabOuterWindowIDs } from './services/tab-service';
 import { MessageType, Action } from '../common/message.types';
 import { WebSocketService } from './services/client-websocket';
-import { handleCPUUsageRequest, monitorCpuUsage, MonitorCpuUsageController } from './services/cpu-usage-service';
-import { act } from 'react';
+import { handleCPUUsageRequest, MonitorCpuUsageController, getCPUUsageOfActiveTab, monitorCpuUsageActive } from './services/cpu-usage-service';
 
 export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;
@@ -112,6 +111,7 @@ export class BackgroundMediator implements IMediator {
                     switch (message.payload.event) {
                         case Action.CLICK_EVENT:
                             this.contentComponent.onClicked(message)
+                            dispatchEvent(new CustomEvent('click-event', { }));
                             console.log('Received click event:', message.payload.elementDetails);
                             break;
                         case Action.SCROLL_EVENT:
@@ -122,18 +122,24 @@ export class BackgroundMediator implements IMediator {
                 break;
 
             case 'devtools':
-                console.log('Received message from devtools:');
-                console.log('Received message from devtools:', message.action);
+                // console.log('Received message from devtools:');
+                // console.log('Received message from devtools:', message.action);
                 break;
         }
     }
 
     private async handleOnTabUpdate(tabId: number, tab: browser.tabs.Tab): Promise<void> {
-        await this.messagingService.sendToTab(tabId, {
-            type: MessageType.TRACKING_STATE,
-            from: 'background',
-            payload: { state: this.stateManager.getState().isTracking }
-        }, tab);
+        if (this.stateManager.getState().isTracking) {
+            await this.messagingService.sendToTab(tabId, {
+                type: MessageType.TRACKING_STATE,
+                from: 'background',
+                payload: { state: this.stateManager.getState().isTracking }
+            }, tab);
+
+            const activeTab = await getActiveTab();
+
+            console.log("SuccesorId: ", activeTab?.successorTabId);
+        }
     }
 
     public notify(sender: BaseComponent, event: RuntimeMessage): void {
@@ -161,17 +167,21 @@ export class BackgroundMediator implements IMediator {
                     }, activeTab);
 
                     const cpuSpikeListener = (event: Event) => {
-                        const customEvent = event as CustomEvent<{ usageRate: number; cpuCycleCount: number }>;
-                        console.log("CPU spike detected:", customEvent.detail);
+                        const customEvent = event as CustomEvent<{ usageRate: number; cpuCycleCount: number, activeTab: string }>;
+                        console.log('CPU Spike detected: Tab:', customEvent.detail.activeTab, 'Usage Rate:', (customEvent.detail.usageRate * 100).toFixed(2) + '%');
+                        this.websocketService.sendMessage({ type: MessageType.CPU_USAGE, payload: customEvent.detail });
                     };
                   
                     if (newState) {
                         this.websocketService.connect("BackgroundMediator");
-                        this.cpuMonitor = monitorCpuUsage(0);
+
+                        this.cpuMonitor = await monitorCpuUsageActive(0);
 
                         addEventListener('cpu-spike', cpuSpikeListener);
+                        
                     } else {
                         this.websocketService.disconnect();
+                        
                         if (this.cpuMonitor) {
                             this.cpuMonitor.cancel();
                             this.cpuMonitor = null;
@@ -188,26 +198,17 @@ export class BackgroundMediator implements IMediator {
 
     private async handleContentEvent(event: RuntimeMessage) {
         switch (event.type) {
-            case MessageType.CPU_USAGE_REQUEST:
-
-                const cpuinfo = await handleCPUUsageRequest();
+            case MessageType.CPU_USAGE:
                 const activeTab = await getActiveTab();
-                const outerWindowIDMap = await getOuterWindowID();
 
-                this.contentComponent.onCPUUsageRequest(cpuinfo, outerWindowIDMap, activeTab);
-
-                break;
-
-            case MessageType.CPU_USAGE_RESPONSE:
-                // this.websocketService.sendMessage({ type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
-                // await this.messagingService.sendToContent(event, { type: MessageType.CPU_USAGE_RESPONSE, payload: cpuinfo });
+                // console.log(fluentname, url, ':', cpuinfo);
                 break;
         }
     }
 
     private async handleDevtoolsEvent(event: RuntimeMessage) {
         switch (event.type) {
-            case MessageType.CPU_USAGE_REQUEST:
+            case MessageType.CPU_USAGE:
                 // handle CPU usage request from devtools
                 break;
         }

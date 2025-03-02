@@ -25,28 +25,17 @@ export class ContentComponent extends BaseComponent {
 
     public onClicked(message: any): void {
         this.mediator.notify(this, {
-            type: MessageType.CPU_USAGE_REQUEST,
+            type: MessageType.CPU_USAGE,
             payload: message
         });
     }
 
     public async onCPUUsageRequest(CPUInfo: MainProcessInfo, outerWindowIDMap: Map<number, string>, activeTab?: browser.tabs.Tab): Promise<void> {
 
-        const children = CPUInfo.children.filter((child: ChildProcessInfo) =>
-            child.windows.some(window => outerWindowIDMap.has(window.outerWindowId))
-        );
-
-        const matchingEntry = Array.from(outerWindowIDMap.entries()).find(([id]) =>
-            children.some(child =>
-                child.windows.some(window => window.outerWindowId === id)
-            )
-        );
-
-        const tabFluentName = matchingEntry ? matchingEntry[1] : undefined;
-
         return this.mediator.notify(this, {
-            type: MessageType.CPU_USAGE_RESPONSE,
-            payload: { tabFluentName }
+            type: MessageType.CPU_USAGE,
+            payload: {}
         });
+
     }
 }

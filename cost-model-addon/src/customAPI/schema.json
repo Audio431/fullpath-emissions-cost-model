@@ -44,12 +44,25 @@
           "parameters": []
         },
         {
-          "name": "getOuterWindowID",
+          "name": "getTabOuterWindowIDs",
           "type": "function",
           "description": "Get the outer window ID.",
           "async": true,
           "parameters": []
-        } 
+        },
+        {
+          "name": "getCollapseSubFrame",
+          "type": "function",
+          "description": "Get subframe of the process without duplicates.",
+          "async": true,
+          "parameters": [
+            {
+              "name": "pid",
+              "type": "number",
+              "description": "The process ID."
+            }
+          ]
+        }
       ]
     }
 ]

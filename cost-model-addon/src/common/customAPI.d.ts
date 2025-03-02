@@ -28,7 +28,6 @@ declare global {
     }
 
    interface windows {
-        documentURI: string;
         documentTitle: string;
         outerWindowId: number;
         isProcessRoot: boolean;
@@ -47,9 +46,13 @@ declare global {
         type: string;
     }
 
+    interface outerWindowIDMap {
+        [outerWindowId: number]: string;
+    }
+
     interface MyAPI {
         getCPUInfo(): Promise<MainProcessInfo>;
-        getOuterWindowID(): Promise<Map<number, string>>;
+        getTabOuterWindowIDs(): Promise<Map<outerWindowIDMap>>;
     }
 
     namespace browser {

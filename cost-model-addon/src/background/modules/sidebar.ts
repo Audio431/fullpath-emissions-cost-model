@@ -1,32 +1,27 @@
-import { BaseComponent } from "./base";
-import { IMediator } from "../mediator";
 import { MessageType } from "../../common/message.types";
+import { eventBus } from "../shared/eventBus";
 
-export class SidebarComponent extends BaseComponent {
-	private static instance: SidebarComponent;
+export class SidebarModule {
+	private static instance: SidebarModule;
 	private trackingEnabled: boolean = false;
 
 	private constructor() {
-		super();
+		eventBus.on("TOGGLE_TRACKING", this.userToggledTracking.bind(this));
 	}
 
-	public static getInstance(): SidebarComponent {
+	public static getInstance(): SidebarModule {
 		if (!this.instance) {
-			this.instance = new SidebarComponent();
+			this.instance = new SidebarModule();
 		}
 		return this.instance;
-	}
-
-	public setMediator(mediator: IMediator) {
-		this.mediator = mediator;
 	}
 
 	public userToggledTracking(): void {
 		this.trackingEnabled = !this.trackingEnabled;
 
-		this.mediator.notify(this, {
+		eventBus.publish("SIDEBAR_TOGGLE_TRACKING", {
 			type: MessageType.TOGGLE_TRACKING,
-			payload: { enabled: this.trackingEnabled },
-		});
+			payload: { enabled: this.trackingEnabled }
+		  })
 	}
 }

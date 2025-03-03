@@ -1,4 +1,3 @@
-import { WebSocketService } from "./client-websocket";
 import { getTabOuterWindowIDs, getActiveTab, getTabFluentname } from "./tab";
 
 export async function handleCPUUsageRequest(): Promise<MainProcessInfo> {
@@ -76,14 +75,15 @@ export async function monitorCpuUsageActive(cpuSpikeThreshold: number): Promise<
 
 				if (prev) {
 					const elapsedNs = (now - prev.time) * 1_000_000;
-					const usageRate = (cpuTime - prev.cpuTime) / elapsedNs;
+					const cpuUsage = cpuTime - prev.cpuTime;
+					const utilisation = (cpuTime - prev.cpuTime) / elapsedNs;
 					// const isActive = usageRate > 0 || cpuCycleCount > prev.cycles;
 
-					if (usageRate > cpuSpikeThreshold) {
-						dispatchEvent(new CustomEvent("cpu-spike", {
-							detail: { usageRate, cpuCycleCount: cpuCycleCount, activeTab: activeTab.title }
-						}));
-					}
+					// if (utilisation > cpuSpikeThreshold) {
+					dispatchEvent(new CustomEvent("cpu-spike", {
+						detail: { cpuUsage, activeTab: activeTab.title }
+					}));
+					// }
 
 					// addEventListener('cpu-clicked', (event) => {
 					// 	const customEvent = event as CustomEvent<{}>;
@@ -96,7 +96,7 @@ export async function monitorCpuUsageActive(cpuSpikeThreshold: number): Promise<
 				// console.error("CPU monitoring error:", error);
 			}
 
-			timer = setTimeout(monitorCycle, 2000);
+			timer = setTimeout(monitorCycle, 1000);
 		};
 
 		monitorCycle();

@@ -32,7 +32,7 @@ export class WebSocketService {
             };
 
             WebSocketService.ws.onmessage = (event) => {
-                console.log('WebSocket message received:', event.data);
+                console.log('WebSocket message:', event.data);
             };
 
             WebSocketService.ws.onclose = () => {

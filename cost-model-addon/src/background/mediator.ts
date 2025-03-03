@@ -9,39 +9,10 @@ export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;
 }
 
-export interface IAppState {
-    isTracking: boolean;
-}
-
-class StateManager {
-    private static instance: StateManager;
-    private state: IAppState = { isTracking: false };
-
-    private constructor() { }
-
-    public static getInstance(): StateManager {
-        if (!StateManager.instance) {
-            StateManager.instance = new StateManager();
-        }
-        return StateManager.instance;
-    }
-
-    public getState(): IAppState {
-        return this.state;
-    }
-
-    public async setState(partial: Partial<IAppState>): Promise<void> {
-        this.state = { ...this.state, ...partial };
-        // Optionally persist to browser.storage, if needed
-        // await browser.storage.local.set({ state: this.state });
-    }
-}
-
 export class BackgroundMediator implements IMediator {
     private static instance: BackgroundMediator;
 
     private messagingService: MessagingService;
-    private stateManager: StateManager;
     private websocketService: WebSocketService;
 
     private sidebarComponent: SidebarComponent;
@@ -50,9 +21,10 @@ export class BackgroundMediator implements IMediator {
 
     private cpuMonitor: MonitorCpuUsageController | null = null;
 
+    private isTracking: boolean = false;
+
     private constructor() {
         this.messagingService = MessagingService.getInstance();
-        this.stateManager = StateManager.getInstance();
         this.websocketService = WebSocketService.getInstance();
 
         this.sidebarComponent = SidebarComponent.getInstance();
@@ -111,7 +83,7 @@ export class BackgroundMediator implements IMediator {
                     switch (message.payload.event) {
                         case Action.CLICK_EVENT:
                             this.contentComponent.onClicked(message)
-                            dispatchEvent(new CustomEvent('click-event', { }));
+                            dispatchEvent(new CustomEvent('click-event', {}));
                             console.log('Received click event:', message.payload.elementDetails);
                             break;
                         case Action.SCROLL_EVENT:
@@ -123,17 +95,19 @@ export class BackgroundMediator implements IMediator {
 
             case 'devtools':
                 // console.log('Received message from devtools:');
-                // console.log('Received message from devtools:', message.action);
+
+
+                // console.log('Received message from devtools:', message);
                 break;
         }
     }
 
     private async handleOnTabUpdate(tabId: number, tab: browser.tabs.Tab): Promise<void> {
-        if (this.stateManager.getState().isTracking) {
+        if (this.isTracking) {
             await this.messagingService.sendToTab(tabId, {
                 type: MessageType.TRACKING_STATE,
                 from: 'background',
-                payload: { state: this.stateManager.getState().isTracking }
+                payload: { state: this.isTracking }
             }, tab);
 
             const activeTab = await getActiveTab();
@@ -156,39 +130,7 @@ export class BackgroundMediator implements IMediator {
         try {
             switch (event.type) {
                 case MessageType.TOGGLE_TRACKING:
-                    const newState = !this.stateManager.getState().isTracking;
-                    await this.stateManager.setState({ isTracking: newState });
-
-                    const activeTab = await getActiveTab()!;
-                    activeTab?.id && await this.messagingService.sendToTab(activeTab.id, {
-                        type: MessageType.TRACKING_STATE,
-                        from: 'background',
-                        payload: { state: newState }
-                    }, activeTab);
-
-                    const cpuSpikeListener = (event: Event) => {
-                        const customEvent = event as CustomEvent<{ usageRate: number; cpuCycleCount: number, activeTab: string }>;
-                        console.log('CPU Spike detected: Tab:', customEvent.detail.activeTab, 'Usage Rate:', (customEvent.detail.usageRate * 100).toFixed(2) + '%');
-                        this.websocketService.sendMessage({ type: MessageType.CPU_USAGE, payload: customEvent.detail });
-                    };
-                  
-                    if (newState) {
-                        this.websocketService.connect("BackgroundMediator");
-
-                        this.cpuMonitor = await monitorCpuUsageActive(0);
-
-                        addEventListener('cpu-spike', cpuSpikeListener);
-                        
-                    } else {
-                        this.websocketService.disconnect();
-                        
-                        if (this.cpuMonitor) {
-                            this.cpuMonitor.cancel();
-                            this.cpuMonitor = null;
-                            
-                            removeEventListener('cpu-spike', cpuSpikeListener);
-                        }
-                    }
+                    this.handleToggleTrackingEvent(event);
                     break;
             }
         } catch (error) {
@@ -213,4 +155,46 @@ export class BackgroundMediator implements IMediator {
                 break;
         }
     }
+
+    
+    private async handleToggleTrackingEvent(event: RuntimeMessage) {
+        this.isTracking = event.payload.enabled;
+
+        const activeTab = await getActiveTab();
+        if (activeTab?.id) {
+            await this.messagingService.sendToTab(activeTab.id, {
+                type: MessageType.TRACKING_STATE,
+                from: 'background',
+                payload: { state: this.isTracking }
+            }, activeTab);
+        }
+
+        this.toggleTrackingListeners(this.isTracking);
+    }
+
+    private cpuSpikeListener = (event: Event) => {
+        const customEvent = event as CustomEvent<{ cpuUsage: number; activeTab: string }>;
+        this.websocketService.sendMessage({
+            type: MessageType.CPU_USAGE,
+            payload: customEvent.detail
+        });
+    };
+
+    private async toggleTrackingListeners(newState: boolean) {
+        if (newState) {
+            this.websocketService.connect("BackgroundMediator");
+            this.cpuMonitor = await monitorCpuUsageActive(0);
+            addEventListener('cpu-spike', this.cpuSpikeListener);
+        } else {
+            this.websocketService.disconnect();
+
+            if (this.cpuMonitor) {
+                this.cpuMonitor.cancel();
+                this.cpuMonitor = null;
+            }
+
+            removeEventListener('cpu-spike', this.cpuSpikeListener);
+        }
+    }
+
 }

@@ -8,7 +8,7 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: {
-    panel: './src/sidebar/panelRoot.tsx',
+    panel: './src/sidebar/components/PanelRoot.tsx',
     background: './src/background/index.ts',
     content: './src/content/index.ts',
     devtools: './src/devtools/devtools.ts',
@@ -77,7 +77,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       filename: 'panel.html',
-      template: path.resolve(__dirname, 'src','sidebar','panel.template.html'),// Using the template file
+      template: path.resolve(__dirname, 'src','sidebar','templates','panel.template.html'),// Using the template file
       chunks: ['panel'],
       inject: 'body' // Inject scripts at the end of the body
     }),

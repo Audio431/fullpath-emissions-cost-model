@@ -7,13 +7,13 @@ const server = createServer(app);
 
 
 server.on('upgrade', (request, socket, head) => {
-    logger.info('WebSocket upgrade request received');
-    WebSocketServer.handleUpgrade(request, socket, head, (ws) => {
-    WebSocketServer.emit('connection', ws, request);
-  });
+	logger.info('WebSocket upgrade request received');
+	WebSocketServer.handleUpgrade(request, socket, head, (ws) => {
+		WebSocketServer.emit('connection', ws, request);
+	});
 });
 
 
 server.listen(port, () => {
-  logger.info(`Server running on http://localhost:${port}`);
+	logger.info(`Server running on http://localhost:${port}`);
 });

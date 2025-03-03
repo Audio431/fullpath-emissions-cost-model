@@ -1,9 +1,9 @@
-import { MessagingService } from './services/messaging-service';
-import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './components';
-import { getActiveTab, getTabOuterWindowIDs } from './services/tab-service';
+import { MessagingService } from './services';
+import { SidebarComponent, DevToolsComponent, ContentComponent, BaseComponent } from './modules';
+import { getActiveTab } from './services';
 import { MessageType, Action } from '../common/message.types';
-import { WebSocketService } from './services/client-websocket';
-import { handleCPUUsageRequest, MonitorCpuUsageController, getCPUUsageOfActiveTab, monitorCpuUsageActive } from './services/cpu-usage-service';
+import { WebSocketService } from './services';
+import { MonitorCpuUsageController, monitorCpuUsageActive } from './services';
 
 export interface IMediator {
     notify(sender: any, event: RuntimeMessage): void;

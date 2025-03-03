@@ -1,4 +1,4 @@
-import { BaseComponent } from './base-component';
+import { BaseComponent } from './base';
 
 export class DevToolsComponent extends BaseComponent {
 	private static instance: DevToolsComponent;

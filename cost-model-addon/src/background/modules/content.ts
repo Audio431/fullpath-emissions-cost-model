@@ -1,6 +1,6 @@
 import { MessageType } from '../../common/message.types';
-import { getActiveTab } from '../services/tab-service';
-import { BaseComponent } from './base-component';
+import { getActiveTab } from '../services/tab';
+import { BaseComponent } from './base';
 
 export class ContentComponent extends BaseComponent {
     private static instance: ContentComponent;
@@ -31,11 +31,9 @@ export class ContentComponent extends BaseComponent {
     }
 
     public async onCPUUsageRequest(CPUInfo: MainProcessInfo, outerWindowIDMap: Map<number, string>, activeTab?: browser.tabs.Tab): Promise<void> {
-
         return this.mediator.notify(this, {
             type: MessageType.CPU_USAGE,
             payload: {}
         });
-
     }
 }

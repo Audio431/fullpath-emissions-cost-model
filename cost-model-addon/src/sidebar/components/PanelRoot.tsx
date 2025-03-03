@@ -1,5 +1,5 @@
 import * as ReactDOM from 'react-dom/client';
-import SideBar from './panel';
+import SideBar from '../logic/panel';
 
 browser.action.onClicked.addListener(() => {
 	browser.sidebarAction.close();

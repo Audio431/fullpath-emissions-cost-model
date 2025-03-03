@@ -1,15 +1,9 @@
-import { BaseComponent } from './base';
+export class DevtoolsModule {
+	private static instance: DevtoolsModule;
 
-export class DevToolsComponent extends BaseComponent {
-	private static instance: DevToolsComponent;
-
-	private constructor() {
-		super();
-	}
-
-	public static getInstance(): DevToolsComponent {
+	public static getInstance(): DevtoolsModule {
 		if (!this.instance) {
-			this.instance = new DevToolsComponent();
+			this.instance = new DevtoolsModule();
 		}
 		return this.instance;
 	}

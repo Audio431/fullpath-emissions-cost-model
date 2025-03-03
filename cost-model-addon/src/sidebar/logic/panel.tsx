@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import * as React from "react";
-import EventsBox from "./eventBox";
-import { MessageType } from "../common/message.types";
+import EventsBox from "../components/eventBox";
+import { MessageType } from "../../common/message.types";
 
 export default function SideBar() {
   const [isTracking, setIsTracking] = React.useState(false);

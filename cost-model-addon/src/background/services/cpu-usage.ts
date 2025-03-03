@@ -1,5 +1,5 @@
 import { WebSocketService } from "./client-websocket";
-import { getTabOuterWindowIDs, getActiveTab, getTabFluentname } from "./tab-service";
+import { getTabOuterWindowIDs, getActiveTab, getTabFluentname } from "./tab";
 
 export async function handleCPUUsageRequest(): Promise<MainProcessInfo> {
 	const CPUInfo = await browser.myAPI.getCPUInfo();

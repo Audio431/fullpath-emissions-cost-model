@@ -5,6 +5,7 @@ import { AggregationService } from './aggregation-service.js';
 import util from 'util';
 
 export const app = express();
+
 export const ws = new WebSocketServer({ noServer: true });
 const clients = new Map<string, WebSocket>();
 const lastMessageMap = new Map<string, string>();
@@ -64,17 +65,30 @@ ws.on('connection', (ws, request) => {
 
 			if (data.type === 'CPU_USAGE') {
 
-				await aggregationService.processAggregation(data.payload);
-				ws.send(`Received CPU Usage: ${data.payload.usageRate}`);
+				await aggregationService.processAggregatedData(data.payload);
+				ws.send(`Received CPU Usage: ${data.payload.cpuUsage}`);
 
 			} else if (data.type === 'PREPARE_TO_CLOSE') {
 
 				ws.send('Sending aggregated data to client...');
-				const avgCPU = await aggregationService.getAggregatedDataOfEachTab();
 
-				logger.info(util.format('Aggregated CPU Usage: %o', avgCPU));
+				const aggregatedData = await aggregationService.getAggregatedDataOfEachTab();
+				const co2Emissions = await aggregationService.convertCPUTimeToCO2Emissions();
 
-				ws.send(JSON.stringify([...avgCPU]));
+				ws.send(JSON.stringify([
+					{
+						type: 'AGGREGATED_CPU_USAGE',
+						// payload: aggregatedData
+						// for debug
+						payload: util.inspect(aggregatedData, { showHidden: false, depth: null })
+					}, 
+					{
+						type: 'CO2_EMISSIONS',
+						// payload: co2Emissions
+						// for debug
+						payload: util.inspect(co2Emissions, { showHidden: false, depth: null })
+					}
+				]));
 
 				ws.send('Closing WebSocket connection...');
 				ws.close();

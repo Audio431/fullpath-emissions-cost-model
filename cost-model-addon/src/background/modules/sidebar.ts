@@ -4,6 +4,7 @@ import { MessageType } from "../../common/message.types";
 
 export class SidebarComponent extends BaseComponent {
 	private static instance: SidebarComponent;
+	private trackingEnabled: boolean = false;
 
 	private constructor() {
 		super();
@@ -21,12 +22,11 @@ export class SidebarComponent extends BaseComponent {
 	}
 
 	public userToggledTracking(): void {
-		// Something triggered in the sidebar script (via message or UI event).
-		// Let's notify the Mediator about it:
-		// console.log("User toggled tracking in sidebar");
+		this.trackingEnabled = !this.trackingEnabled;
+
 		this.mediator.notify(this, {
 			type: MessageType.TOGGLE_TRACKING,
-			payload: { enabled: true }
+			payload: { enabled: this.trackingEnabled },
 		});
 	}
 }

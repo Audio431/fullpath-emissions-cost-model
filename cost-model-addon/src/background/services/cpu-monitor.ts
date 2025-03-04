@@ -10,7 +10,7 @@ async function getChildProcesses(): Promise<ChildProcessInfo[]> {
 	return CPUInfo.children;
 }
 
-async function getTabsProcesses(): Promise<(ChildProcessInfo | string)[]> {
+async function getCurrentTabsProcesses(): Promise<(ChildProcessInfo | string)[]> {
 	const children = await getChildProcesses();
 	const outerWindowIDs = await getTabOuterWindowIDs();
 

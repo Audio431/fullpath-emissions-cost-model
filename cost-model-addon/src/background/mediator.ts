@@ -5,7 +5,6 @@ import { WebSocketService } from './services';
 import { MonitorCpuUsageController, monitorCpuUsageActive } from './services';
 import { eventBus } from './shared/eventBus';
 
-
 export class BackgroundMediator {
     private static instance: BackgroundMediator;
 
@@ -15,8 +14,6 @@ export class BackgroundMediator {
     private cpuMonitor: MonitorCpuUsageController | null = null;
 
     private isTracking: boolean = false;
-
-
 
     private constructor() {
         this.messagingService = MessagingService.getInstance();
@@ -28,7 +25,6 @@ export class BackgroundMediator {
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
 
         eventBus.on("SIDEBAR_TOGGLE_TRACKING", this.handleToggleTrackingEvent.bind(this));
-
     }
 
     public static getInstance(): BackgroundMediator {
@@ -70,8 +66,7 @@ export class BackgroundMediator {
                 break;
 
             case 'devtools':
-                console.log('Received message from devtools:');
-                // console.log('Received message from devtools:', message);
+                eventBus.publish("DEVTOOLS_HAR", message);
                 break;
         }
     }
@@ -83,11 +78,9 @@ export class BackgroundMediator {
                 from: 'background',
                 payload: { state: this.isTracking }
             }, tab);
-
-            const activeTab = await getActiveTab();
-
-            console.log("SuccesorId: ", activeTab?.successorTabId);
         }
+
+        // console.log('Tab updated:', tab);
     }
 
     private async handleToggleTrackingEvent(event: RuntimeMessage) {

@@ -3,14 +3,6 @@ let listenerAdded = false;
 
 port.postMessage("Hi from devtools");
 
-port.onMessage.addListener((message: any) => {
-    if (message.action === "getHAR") {
-        onGetHAR(message);
-    } else if (message.action === "register") {
-        console.log("Devtools registered:", message);
-    }
-});
-
 onAddRequestListener();
 
 function onAddRequestListener() {
@@ -20,16 +12,16 @@ function onAddRequestListener() {
     }
 }
 
-function onGetHAR(message : any) {
-    browser.devtools.network.getHAR().then((harLog: any) => {
-        port.postMessage({
-            tabId: browser.devtools.inspectedWindow.tabId,
-            har: harLog,
-            action: "getHAR",
-            actionId: message.actionId,
-        });
-    });
-}
+// function onGetHAR(message : any) {
+//     browser.devtools.network.getHAR().then((harLog: any) => {
+//         port.postMessage({
+//             tabId: browser.devtools.inspectedWindow.tabId,
+//             har: harLog,
+//             action: "getHAR",
+//             actionId: message.actionId,
+//         });
+//     });
+// }
 
 function onRequestFinished(request: any) {
     request.getContent().then(([

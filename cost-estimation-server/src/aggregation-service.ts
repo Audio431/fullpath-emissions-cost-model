@@ -1,13 +1,17 @@
 import { logger } from "./logger.js";
 import util from 'util';
 import { fetchCarbonIntensityData, fetchCarbonIntensityDataForRegion } from "./carbon-query.js";
+import type { CarbonIntensityData, RegionData } from "./carbon-query.js";
+import NodeCache from 'node-cache';
 
 export class AggregationService {
 
 	private cpuUsageMap: Map<string, number[]>;
+	private carbonCache: NodeCache;
 
 	constructor(cpuUsageMap?: Map<string, number[]>) {
 		this.cpuUsageMap = cpuUsageMap || new Map<string, number[]>();
+		this.carbonCache = new NodeCache({ stdTTL: 1800 });
 	}
 
 	async processAggregatedData(message: { activeTab: string, cpuUsage: number }): Promise<void> {
@@ -19,26 +23,39 @@ export class AggregationService {
 		}
 	}
 
+	private async getCarbonData() : Promise<{ actualData: CarbonIntensityData[], regionalData: RegionData[] }> {
+		let actualData = this.carbonCache.get('actualData') as CarbonIntensityData[];
+		let regionalData = this.carbonCache.get('regionalData') as RegionData[];
+	
+		if (!actualData || !regionalData) {
+		  logger.info("Fetching new carbon intensity data...");
+		  actualData = await fetchCarbonIntensityData();
+		  regionalData = await fetchCarbonIntensityDataForRegion();
+		  this.carbonCache.set('actualData', actualData);
+		  this.carbonCache.set('regionalData', regionalData);
+		}
+		return { actualData, regionalData };
+	}
+
 	async convertCPUTimeToCO2Emissions(): Promise<Map<string, number>> {
 
 		const result = new Map<string, number>();
 
 		const device_power_consumption_W = 10;
-		const actual_carbon_intensity_g = await fetchCarbonIntensityData();
-		const regions_estimated_carbon_intensity_g = await fetchCarbonIntensityDataForRegion();
+		const { actualData , regionalData } = await this.getCarbonData();
 
 		const totalCPUTimeNS = [...this.cpuUsageMap.values()].flat().reduce((a, b) => a + b, 0);
 		const totalCPUTImeHours = totalCPUTimeNS / 1000 / 1000 / 1000 / 60 / 60;
-		const power_consumption_W = totalCPUTImeHours * device_power_consumption_W /1000;
-		const power_consumption_kWh = power_consumption_W / 1000;
+		const powerConsumptionW = totalCPUTImeHours * device_power_consumption_W /1000;
+		const powerConsumptionkWh = powerConsumptionW / 1000;
 
 
 		// Actual carbon intensity
-		result.set('actual', power_consumption_kWh * actual_carbon_intensity_g[0].intensity.actual! * 1000 * 1000 * 100);
+		result.set('actual', powerConsumptionkWh  * actualData[0].intensity.actual! * 1000 * 1000 * 100);
 		
 		// Regional forecast carbon intensity
-		regions_estimated_carbon_intensity_g.forEach(region => {
-			result.set(region.shortname, power_consumption_kWh * region.intensity.forecast! * 1000 * 1000 * 100);
+		regionalData.forEach(region => {
+			result.set(region.shortname, powerConsumptionkWh  * region.intensity.forecast! * 1000 * 1000 * 100);
 		});
 
 		

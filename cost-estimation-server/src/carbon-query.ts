@@ -1,5 +1,3 @@
-import { log } from "console";
-
 export interface CarbonIntensityData {
     from: string;
     to: string;
@@ -15,7 +13,7 @@ export interface RegionData extends CarbonIntensityData {
     shortname: string;
 }
 
-
+// Current half an hour ago data
 export async function fetchCarbonIntensityData(): Promise<CarbonIntensityData[]> {
     try {
         const response = await fetch('https://api.carbonintensity.org.uk/intensity');
@@ -28,6 +26,7 @@ export async function fetchCarbonIntensityData(): Promise<CarbonIntensityData[]>
     }
 }
 
+// Forecast data for each region
 export async function fetchCarbonIntensityDataForRegion(): Promise<RegionData[]> {
     const regions = new Array<RegionData>();
 

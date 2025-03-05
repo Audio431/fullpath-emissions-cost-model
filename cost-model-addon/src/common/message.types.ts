@@ -5,6 +5,7 @@ enum MessageType {
   REGISTER = 'REGISTER',
   CPU_USAGE = 'CPU_USAGE',
   PREPARE_TO_CLOSE = 'PREPARE_TO_CLOSE',
+  REQUEST_TRACKING_STATE = 'REQUEST_TRACKING_STATE',
 }
 
 enum Action {
@@ -41,6 +42,7 @@ declare global {
     [MessageType.REGISTER]: { id: string; info?: any };
     [MessageType.CPU_USAGE]: any;
     [MessageType.PREPARE_TO_CLOSE]: any;
+    [MessageType.REQUEST_TRACKING_STATE]: any;
   }
 
   interface Message<T extends MessageType = MessageType> {

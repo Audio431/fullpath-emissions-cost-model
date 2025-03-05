@@ -1,12 +1,15 @@
 type MessageCallback = (message: RuntimeMessage, sender: any) => void;
 type PortMessageCallback = (message: RuntimeMessage, port: browser.runtime.Port) => void;
-type TabCallback = (tabId: number, changeInfo: any, tab: browser.tabs.Tab) => void;
+type TabCallback = (tabId:number, changeInfo: any, tab: browser.tabs.Tab,) => void;
+type PortConnectionCallback = (port: browser.runtime.Port) => void;
 
 export class MessagingService {
     private static instance: MessagingService;
 
     private callback?: MessageCallback;
     private portCallback?: PortMessageCallback;
+    private portConnectionCallback?: PortConnectionCallback;
+    private portDisconnectCallback?: PortConnectionCallback
     private updateCallback?: TabCallback;
     private updateActiveTabCallback?: TabCallback;
 
@@ -18,13 +21,16 @@ export class MessagingService {
         });
 
         browser.runtime.onConnect.addListener((port) => {
+            console.log(`[MessagingService] Port connected: ${port.name} (tabId: ${port.sender?.tab?.id})`);
+            this.portConnectionCallback && this.portConnectionCallback(port);
 
             port.onMessage.addListener((message: any) => {
                 this.portCallback && this.portCallback(message, port);
             });
 
             port.onDisconnect.addListener(() => {
-                console.log('Port disconnected:', port.name);
+                console.log(`[MessagingService] Port connected: ${port.name} (tabId: ${port.sender?.tab?.id})`);
+                this.portDisconnectCallback && this.portDisconnectCallback(port);
             });
         });
 
@@ -57,27 +63,50 @@ export class MessagingService {
         this.portCallback = callback;
     }
 
+    public setPortConnectionHandler(callback: PortConnectionCallback): void {
+        this.portConnectionCallback = callback;
+    }
+
+    public setPortDisconnectionHandler(callback: PortConnectionCallback): void {
+        this.portDisconnectCallback = callback;
+    }
+
+    public setOnTabUpdateListener(callback: TabCallback): void {
+        this.updateCallback = callback;
+    }
+
     public setOnActiveTabUpdateListener(callback: TabCallback): void {
         this.updateActiveTabCallback = callback;
     }
 
-    public async sendToTab(tabId: number, msg: RuntimeMessage, tab: browser.tabs.Tab, retries = 5): Promise<void> {
-        await browser.tabs.sendMessage(tabId, msg).then((response) => {
-            response && console.log('Response from tab:', response);
-        }).catch((error) => {
-            if (error.message === 'Could not establish connection. Receiving end does not exist.') {
+    public async sendToTab(tab: browser.tabs.Tab, msg: RuntimeMessage, retries: number = 5): Promise<void> {
+        try {
+            if (!tab.id) {
+                console.error('[MessagingService] Cannot send message to tab with undefined id');
+                return;
+            }
+            
+            const response = await browser.tabs.sendMessage(tab.id, msg);
+            
+            if (response) {
+                console.log('[MessagingService] Response from tab:', response);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            
+            if (errorMessage === 'Could not establish connection. Receiving end does not exist.') {
                 if (retries > 0) {
-                    console.log(`Tab is not ready yet: ${tab.url}. Retrying in 1 second... (Attempts left: ${retries})`);
+                    console.log(`[MessagingService] Tab is not ready yet: ${tab.url}. Retrying in 1 second... (Attempts left: ${retries})`);
                     setTimeout(() => {
-                        this.sendToTab(tabId, msg, tab, retries - 1);
+                        this.sendToTab(tab, msg, retries - 1);
                     }, 1000);
                 } else {
-                    console.error(`Failed to send message to tab ${tabId} after multiple attempts.`);
+                    console.error(`[MessagingService] Failed to send message to tab ${tab.id} after multiple attempts.`);
                 }
             } else {
-                console.error('Error sending message to tab:', error);
+                console.error('[MessagingService] Error sending message to tab:', error);
             }
-        });
+        }
     }
 
     public async sendToRuntime(msg: RuntimeMessage): Promise<void> {
@@ -89,6 +118,7 @@ export class MessagingService {
     }
 
     public async sendPortMessage(port: browser.runtime.Port, msg: any): Promise<void> {
+        console.log('[MessagingService] sending message to port:', port.name);
         port.postMessage(msg);
     }
 }

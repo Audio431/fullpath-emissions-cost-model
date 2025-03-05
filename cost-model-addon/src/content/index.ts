@@ -14,7 +14,6 @@ browser.runtime.onMessage.addListener((msg : RuntimeMessage, sender, sendRespons
                 eventHandler.startTracking();
             } else {
                 // Stop tracking
-                console.log('Stopping tracking');
                 eventHandler.stopTracking();
                 trackingPort && trackingPort.disconnect();
             }

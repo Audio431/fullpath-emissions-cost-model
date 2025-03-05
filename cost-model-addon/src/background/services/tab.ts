@@ -3,6 +3,11 @@ export async function getActiveTab(): Promise<browser.tabs.Tab | undefined> {
     return tabs[0];
 }
 
+export async function getActiveTabId(): Promise<number | undefined> {  
+    const tab = await getActiveTab();
+    return tab?.id;
+}
+
 export async function getTabById(tabId: number): Promise<browser.tabs.Tab | undefined> {
     const tabs = await browser.tabs.query({ currentWindow: true });
     return tabs.find(tab => tab.id === tabId);

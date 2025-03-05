@@ -65,7 +65,7 @@ export class EventHandler {
     private setupLongTaskObserver(): void {
         this.performanceObserver = new PerformanceObserver((list) => {
             list.getEntries().forEach((entry) => {
-                console.log(`[Debug] Long Task detected: ${entry.duration} ms`);
+                // console.log(`[Debug] Long Task detected: ${entry.duration} ms`);
                 this.aggregatedLongTaskTime += entry.duration;
                 this.longTaskCount++;
             });
@@ -78,11 +78,11 @@ export class EventHandler {
         // Every second, log and reset
         this.longTaskIntervalId = window.setInterval(() => {
             (window as any).currentLongTaskTime = this.aggregatedLongTaskTime;
-            console.log(
-                `[Debug] Aggregated Long Task Time in the last second: ${this.aggregatedLongTaskTime.toFixed(
-                    2
-                )} ms, Task count: ${this.longTaskCount}`
-            );
+            // console.log(
+            //     `[Debug] Aggregated Long Task Time in the last second: ${this.aggregatedLongTaskTime.toFixed(
+            //         2
+            //     )} ms, Task count: ${this.longTaskCount}`
+            // );
             // Reset
             this.aggregatedLongTaskTime = 0;
             this.longTaskCount = 0;
@@ -107,7 +107,7 @@ export class EventHandler {
         // Every second, log and reset
         this.mutationIntervalId = window.setInterval(() => {
             (window as any).currentMutationCount = this.mutationCount;
-            console.log(`[Debug] Mutation count in the last second: ${this.mutationCount}`);
+            // console.log(`[Debug] Mutation count in the last second: ${this.mutationCount}`);
             // Reset
             this.mutationCount = 0;
         }, 1000);

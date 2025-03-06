@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Custom API",
+    "name": "Carbon Footprint Tracker",
     "version": "1.0",
 
     "devtools_page": "devtools.html",
@@ -24,7 +24,7 @@
         "128": "images/icon128.png"
       },
 
-      "default_title": "Custom API",
+      "default_title": "Carbon Footprint Tracker",
       "default_panel": "panel.html",
       "open_at_install": true
     },

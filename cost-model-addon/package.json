@@ -6,9 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js --mode=development --watch",
     "clean": "rm -rf dist",
-    "start:firefox": "web-ext run --browser-console --firefox=deved --source-dir dist",
-    "migrate:postgres": "dotenv -e .env.local -- yarn exec prisma migrate dev --name init",
-    "prisma:pull": "dotenv -e .env.local -- yarn exec prisma db pull"
+    "start:firefox": "web-ext run --browser-console --firefox=deved --source-dir dist"
   },
   "author": "",
   "license": "MIT",

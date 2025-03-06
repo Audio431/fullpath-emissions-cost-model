@@ -8,7 +8,7 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: {
-    panel: './src/sidebar/components/PanelRoot.tsx',
+    panel: './src/sidebar/PanelRoot.tsx',
     background: './src/background/index.ts',
     content: './src/content/index.ts',
     devtools: './src/devtools/devtools.ts',

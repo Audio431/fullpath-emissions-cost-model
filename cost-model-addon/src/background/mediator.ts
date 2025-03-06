@@ -30,6 +30,7 @@ export class BackgroundMediator {
 
         eventBus.on("SIDEBAR_TOGGLE_TRACKING", this.handleContentToggleTrackingEvent.bind(this));
         eventBus.on("DEVTOOLS_TOGGLE_TRACKING", this.handleDevtoolsToggleTrackingEvent.bind(this));
+        eventBus.on("DEVTOOLS_SEND_TO_WEBSOCKET", this.handleDevtoolsMessage.bind(this));
     }
 
     public static getInstance(): BackgroundMediator {
@@ -71,39 +72,68 @@ export class BackgroundMediator {
     private processPortMessage(message: any, port: browser.runtime.Port): void {
         switch (port.name) {
             case 'content-script':
-                if (message.type === MessageType.EVENT_LISTENER) {
-                    switch (message.payload.event) {
-
-                        case Action.CLICK_EVENT:
-                            eventBus.publish("CONTENT_CLICK_EVENT", {
-                                elementDetails: message.payload.elementDetails,
-                                // add any other data you need
-                            });
-                            break;
-
-                        case Action.SCROLL_EVENT:
-                            console.log('Received scroll event:', message.payload.scrollY);
-                            break;
-                    }
-                };
-
+                this.handleContentMessage(message, port);
                 break;
 
             case 'devtools':
-                if (message.type === MessageType.REQUEST_TRACKING_STATE) {
+                this.handleDevtoolsMessage(message, port);
+                break;
+        }
+    }
 
-                    const runtimeMessage: RuntimeMessage = {
-                        type: MessageType.TRACKING_STATE,
-                        from: 'background',
-                        payload: { state: this.isTracking }
-                    };
+    private async handleContentMessage(message: RuntimeMessage, port: browser.runtime.Port): Promise<void> {
+        switch (message.type) {
+            case MessageType.EVENT_LISTENER:
+                this.handleContentEvent(message.payload);
+                break;
+        }
+    }
 
-                    this.messagingService.sendPortMessage(port, runtimeMessage);
-                } else if (message.type === "TAB_ID") {
-                    const tabId = message.tabId;
-                    this.portConnections.set(tabId, { 'devtools': port });
-                }
-                // eventBus.publish("DEVTOOLS_MESSAGE", message);
+    private async handleContentEvent (payload: EventPayload<Action>) {
+        switch (payload.event) {
+            case Action.CLICK_EVENT:
+                // this.messagingService.sendToRuntime({
+                //     type: MessageType.EVENT_LISTENER,
+                //     payload: payload
+                // });
+                break;
+
+            case Action.SCROLL_EVENT:
+                // this.messagingService.sendToRuntime({
+                //     type: MessageType.EVENT_LISTENER,
+                //     payload: payload
+                // });
+                break;
+        }
+    }
+
+    private async handleDevtoolsMessage(message: any, port?: browser.runtime.Port): Promise<void> {
+        switch (message.type) {
+            case MessageType.REQUEST_TRACKING_STATE:
+                
+                const runtimeMessage: RuntimeMessage = {
+                    type: MessageType.TRACKING_STATE,
+                    from: 'background',
+                    payload: { state: this.isTracking }
+                };
+                
+                this.messagingService.sendPortMessage(port!, runtimeMessage);
+                break;
+
+            case "TAB_ID":
+                const tabId = message.tabId;
+                this.portConnections.set(tabId, { 'devtools': port! });
+                break;
+            
+            case MessageType.NETWORK_DATA:
+                eventBus.publish("DEVTOOLS_MESSAGE", message);
+                break;
+            
+            case "SEND_TO_WEBSOCKET":
+                this.websocketService.sendMessage({
+                    type: MessageType.NETWORK_DATA,
+                    payload: message.payload
+                });
                 break;
         }
     }
@@ -172,7 +202,7 @@ export class BackgroundMediator {
             payload: customEvent.detail
         };
 
-        this.websocketService.sendMessage(runtimeMessage);
+        // this.websocketService.sendMessage(runtimeMessage);
     };
 
     private async toggleTrackingListeners(newState: boolean) {

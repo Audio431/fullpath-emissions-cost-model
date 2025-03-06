@@ -6,7 +6,6 @@ export class DevtoolsModule {
 	private static instance: DevtoolsModule;
 	private trackingEnabled: boolean = false;
 
-
 	public static getInstance(): DevtoolsModule {
 		if (!this.instance) {
 			this.instance = new DevtoolsModule();
@@ -41,41 +40,45 @@ export class DevtoolsModule {
 		return true;
 	}
 
-	private handleDevtoolsMessage(rawHARLog: any): RoundTrip | undefined {
-		const tabId = rawHARLog.tabId;
-		const action = rawHARLog.action;
+	private handleDevtoolsMessage(message: RuntimeMessage): void {
+
+		const tabId = message.payload.tabId;
+		const action =  message.payload.action;
 
 		let request: Request | undefined;
-		if (rawHARLog.request && this.isValidJSONString(rawHARLog.request)) {
+		if (message.payload.request && this.isValidJSONString(message.payload.request)) {
 			try {
-				request = JSON.parse(rawHARLog.request) as Request;
+		request = JSON.parse(message.payload.request) as Request;
 			} catch (error) {
 				console.error("Error parsing HAR log JSON:", error);
 				request = undefined;
 			}
 		}
 
+
 		if (!request) {
 			console.error("[DevtoolsModule] Invalid request data received from devtools");
 			return;
 		}
 
-		const nonCachedRequests = this.requestMatchFilter(request, {
-			isCached: true,
-			isRedirect: true
+		const filteredRequests = this.matchesCriteria(request, {
+			isTimeNotZero: true,
 		});
 
-		// console.log("Received Request: ", request)
-		console.log("Filtered Requests: ", nonCachedRequests);
+		if (filteredRequests) {
+			eventBus.publish("DEVTOOLS_SEND_TO_WEBSOCKET", {
+				type: "SEND_TO_WEBSOCKET",
+				payload: {
+					tabId,
+					action,
+					request
+				}
+			});
+		}
 
-		return {
-			tabId,
-			action,
-			request
-		};
 	}
-
-	private requestMatchFilter(
+	
+	private matchesCriteria(
 		request: Request,
 		filter: Partial<ClassificationFlags>
 	): boolean {
@@ -83,7 +86,6 @@ export class DevtoolsModule {
 		const method = request.request.method;
 		const responseStatus = request.response.status;
 		const responseMimeType = request.response.content.mimeType;
-
 		const computedFlags: ClassificationFlags = {
 			isImage: responseMimeType.includes("image"),
 			isCSS: responseMimeType.includes("css"),
@@ -97,6 +99,7 @@ export class DevtoolsModule {
 			isPOST: method === "POST",
 			isPUT: method === "PUT",
 			isDELETE: method === "DELETE",
+			isTimeNotZero: request.time > 0,
 			isXHR: request.response.headers.some((header: Header) =>
 				header.name.toLowerCase() === "x-requested-with"
 			),
@@ -107,7 +110,7 @@ export class DevtoolsModule {
 			isSecureWithWarnings: request._securityState === "warning",
 			isNotSecure: request._securityState === "insecure",
 		};
-
+		
 		// Loop over each property in the filter object and check against computed flags
 		for (const key in filter) {
 			if (filter.hasOwnProperty(key)) {

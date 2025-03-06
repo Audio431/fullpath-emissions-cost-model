@@ -95,6 +95,7 @@ interface ClassificationFlags {
     isSecure: boolean;
     isSecureWithWarnings: boolean;
     isNotSecure: boolean;
+    isTimeNotZero: boolean;
 }
 
 export type { RoundTrip, Header, Cookie, RequestDetails, PostData, ResponseContent, ResponseDetails, CacheData, Timings, Request, ClassificationFlags };

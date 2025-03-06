@@ -1,3 +1,5 @@
+import { RoundTrip } from "./network.types";
+
 enum MessageType {
   TRACKING_STATE = 'TRACKING_STATE',
   TOGGLE_TRACKING = 'TOGGLE_TRACKING',
@@ -6,6 +8,8 @@ enum MessageType {
   CPU_USAGE = 'CPU_USAGE',
   PREPARE_TO_CLOSE = 'PREPARE_TO_CLOSE',
   REQUEST_TRACKING_STATE = 'REQUEST_TRACKING_STATE',
+  NETWORK_DATA = 'NETWORK_DATA',
+
 }
 
 enum Action {
@@ -43,6 +47,7 @@ declare global {
     [MessageType.CPU_USAGE]: any;
     [MessageType.PREPARE_TO_CLOSE]: any;
     [MessageType.REQUEST_TRACKING_STATE]: any;
+    [MessageType.NETWORK_DATA]: RoundTrip;
   }
 
   interface Message<T extends MessageType = MessageType> {
@@ -58,6 +63,11 @@ declare global {
       payload: MessagePayloads[K];
     }
   }[MessageType];
+
+  type EventPayload<T extends Action> = Extract<
+    MessagePayloads[MessageType.EVENT_LISTENER],
+    { event: T }
+  >;
 }
 
 export { Action, MessageType };

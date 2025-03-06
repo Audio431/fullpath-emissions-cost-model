@@ -1,5 +1,5 @@
 /**
- * @fileOverview This script adopts the har-export-trigger extension.
+ * @file This script adopts the har-export-trigger extension.
  * @see {@link https://github.com/firefox-devtools/har-export-trigger|har-export-trigger GitHub repository}
  */
 
@@ -27,17 +27,6 @@ port.onMessage.addListener((message: any) => {
     }
 });
 
-// function onGetHAR(message : any) {
-//     browser.devtools.network.getHAR().then((harLog: any) => {
-//         port.postMessage({
-//             tabId: browser.devtools.inspectedWindow.tabId,
-//             har: harLog,
-//             action: "getHAR",
-//             actionId: message.actionId,
-//         });
-//     });
-// }
-
 function onRequestFinished(request: any) {
     request.getContent().then(([
         content, 
@@ -49,9 +38,13 @@ function onRequestFinished(request: any) {
         responseContent.text = content;
         
         port.postMessage({
-            tabId: browser.devtools.inspectedWindow.tabId,
-            action: "requestFinished",
-            request: JSON.stringify(request),
+            type: MessageType.NETWORK_DATA,
+            payload: {
+                tabId: browser.devtools.inspectedWindow.tabId,
+                request: JSON.stringify(request),
+                action: "requestFinished"
+            }
+           
         });
 
     }).catch((error: any) => {

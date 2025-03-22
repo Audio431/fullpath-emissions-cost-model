@@ -67,7 +67,7 @@
     }
   },
 
-  "permissions": ["scripting", "tabs", "unlimitedStorage","activeTab"],
+  "permissions": ["scripting", "tabs", "activeTab"],
   "host_permissions": ["<all_urls>"],
 
   "content_security_policy": {

@@ -1,5 +1,6 @@
 import { List, ListItem, Card, CardContent, Typography, Box, Button, Collapse } from "@mui/material";
 import * as React from "react";
+import CarbonImpactChart from "./carbon-impact-chart";
 
 interface EventProps {
   title: string;
@@ -50,6 +51,9 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
     "Network Footprint": false,
     "Digital Activities": false
   });
+  
+  // State to toggle between chart and list view
+  const [showChart, setShowChart] = React.useState(true);
 
   // Toggle category expansion
   const toggleCategory = (category: string) => {
@@ -129,7 +133,6 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
         gap: 1,
         fontSize: "1.1rem"
       }}>
-        <div style={{width: "12px", height: "12px", backgroundColor: "#43a047", borderRadius: "9999px", flexShrink: "0"}} />
         Carbon Impact {isTracking && <span style={{ color: "#81c784", fontSize: "0.8em", fontWeight: "normal" }}>(Live Monitoring)</span>}
       </Typography>
       
@@ -146,104 +149,159 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
           </Typography>
         </Box>
         
-        <List sx={{ 
-          display: "flex", 
-          flexDirection: "column", 
-          gap: 1.5,
-          transition: "all 0.3s ease-in-out",
-          transform: isTracking ? "translateY(0)" : "translateY(10px)",
-        }}>
-          {categories.map((category) => (
-            <Card key={category} sx={{ 
-              width: "100%", 
-              borderRadius: 2, 
-              overflow: "hidden",
-              transition: "box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out",
-              boxShadow: isTracking ? "0 2px 8px rgba(76, 175, 80, 0.15)" : "none",
-              border: "1px solid rgba(76, 175, 80, 0.2)",
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              mb: 0.5
-            }}>
-              <Button 
-                fullWidth
-                onClick={() => toggleCategory(category)}
-                sx={{ 
-                  justifyContent: "space-between", 
-                  padding: "8px 12px",
-                  textTransform: "none",
-                  fontWeight: "medium",
-                  fontSize: "0.9rem",
-                  color: "#1b5e20",
-                  backgroundColor: expandedCategories[category] ? "rgba(76, 175, 80, 0.08)" : "transparent",
-                  "&:hover": {
-                    backgroundColor: expandedCategories[category] ? "rgba(76, 175, 80, 0.12)" : "rgba(76, 175, 80, 0.04)"
-                  }
-                }}
-              >
-                <Typography sx={{ 
-                  fontWeight: "medium", 
-                  fontSize: "0.9rem", 
-                  display: "flex", 
-                  alignItems: "center",
-                  gap: 1
-                }}>
-                  {category === "Device Emissions" && (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" fill="#43a047"/>
-                    </svg>
-                  )}
-                  {category === "Network Footprint" && (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="#43a047"/>
-                    </svg>
-                  )}
-                  {category === "Digital Activities" && (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 3l2.3 2.3-2.89 2.87 1.42 1.42L18.7 6.7 21 9V3h-6zM3 9l2.3-2.3 2.87 2.89 1.42-1.42L6.7 5.3 9 3H3v6zm6 12l-2.3-2.3 2.89-2.87-1.42-1.42L5.3 17.3 3 15v6h6zm12-6l-2.3 2.3-2.87-2.89-1.42 1.42 2.89 2.87L15 21h6v-6z" fill="#43a047"/>
-                    </svg>
-                  )}
-                  {category} ({groupedEvents[category].length})
-                </Typography>
-                <span>{expandedCategories[category] ? "▲" : "▼"}</span>
-              </Button>
-              <Collapse in={expandedCategories[category]} timeout={200}>
-                <List sx={{ 
-                  display: "flex", 
-                  flexDirection: "column", 
-                  gap: 0.5, 
-                  padding: "4px 6px",
-                  my: 0
-                }}>
-                  {groupedEvents[category].map((event, index) => (
-                    <ListItem key={index} disablePadding sx={{ minHeight: "auto" }}>
-                      <Card sx={{
-                        width: "100%",
-                        borderRadius: 1.5,
-                        boxShadow: 1,
-                        overflow: "hidden",
-                        transition: "box-shadow 0.2s ease-in-out",
-                        "&:hover": {
-                          boxShadow: 2
-                        }
-                      }}>
-                        <CardContent sx={{ 
-                          padding: "8px 12px", 
-                          "&:last-child": { paddingBottom: "8px" }
+        {/* View toggle buttons */}
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2, gap: 1 }}>
+          <Button 
+            variant={showChart ? "contained" : "outlined"} 
+            size="small"
+            onClick={() => setShowChart(true)}
+            sx={{ 
+              borderRadius: "20px",
+              textTransform: "none",
+              fontSize: "0.75rem",
+              color: showChart ? "white" : "#2e7d32",
+              backgroundColor: showChart ? "#43a047" : "transparent",
+              borderColor: "#43a047",
+              "&:hover": {
+                backgroundColor: showChart ? "#2e7d32" : "rgba(76, 175, 80, 0.1)",
+              }
+            }}
+          >
+            Chart View
+          </Button>
+          <Button 
+            variant={!showChart ? "contained" : "outlined"} 
+            size="small"
+            onClick={() => setShowChart(false)}
+            sx={{ 
+              borderRadius: "20px",
+              textTransform: "none",
+              fontSize: "0.75rem",
+              color: !showChart ? "white" : "#2e7d32",
+              backgroundColor: !showChart ? "#43a047" : "transparent",
+              borderColor: "#43a047",
+              "&:hover": {
+                backgroundColor: !showChart ? "#2e7d32" : "rgba(76, 175, 80, 0.1)",
+              }
+            }}
+          >
+            List View
+          </Button>
+        </Box>
+        
+        {/* Chart View */}
+        <Collapse in={showChart} timeout={300}>
+          <CarbonImpactChart 
+            width={250} 
+            height={260} 
+            animate={true}
+            isTracking={isTracking}
+            events={events}
+          />
+        </Collapse>
+        
+        {/* List View */}
+        <Collapse in={!showChart} timeout={300}>
+          <List sx={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: 1.5,
+            transition: "all 0.3s ease-in-out",
+            transform: isTracking ? "translateY(0)" : "translateY(10px)",
+          }}>
+            {categories.map((category) => (
+              <Card key={category} sx={{ 
+                width: "100%", 
+                borderRadius: 2, 
+                overflow: "hidden",
+                transition: "box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out",
+                boxShadow: isTracking ? "0 2px 8px rgba(76, 175, 80, 0.15)" : "none",
+                border: "1px solid rgba(76, 175, 80, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                mb: 0.5
+              }}>
+                <Button 
+                  fullWidth
+                  onClick={() => toggleCategory(category)}
+                  sx={{ 
+                    justifyContent: "space-between", 
+                    padding: "8px 12px",
+                    textTransform: "none",
+                    fontWeight: "medium",
+                    fontSize: "0.9rem",
+                    color: "#1b5e20",
+                    backgroundColor: expandedCategories[category] ? "rgba(76, 175, 80, 0.08)" : "transparent",
+                    "&:hover": {
+                      backgroundColor: expandedCategories[category] ? "rgba(76, 175, 80, 0.12)" : "rgba(76, 175, 80, 0.04)"
+                    }
+                  }}
+                >
+                  <Typography sx={{ 
+                    fontWeight: "medium", 
+                    fontSize: "0.9rem", 
+                    display: "flex", 
+                    alignItems: "center",
+                    gap: 1
+                  }}>
+                    {category === "Device Emissions" && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" fill="#43a047"/>
+                      </svg>
+                    )}
+                    {category === "Network Footprint" && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="#43a047"/>
+                      </svg>
+                    )}
+                    {category === "Digital Activities" && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 3l2.3 2.3-2.89 2.87 1.42 1.42L18.7 6.7 21 9V3h-6zM3 9l2.3-2.3 2.87 2.89 1.42-1.42L6.7 5.3 9 3H3v6zm6 12l-2.3-2.3 2.89-2.87-1.42-1.42L5.3 17.3 3 15v6h6zm12-6l-2.3 2.3-2.87-2.89-1.42 1.42 2.89 2.87L15 21h6v-6z" fill="#43a047"/>
+                      </svg>
+                    )}
+                    {category} ({groupedEvents[category].length})
+                  </Typography>
+                  <span>{expandedCategories[category] ? "▲" : "▼"}</span>
+                </Button>
+                <Collapse in={expandedCategories[category]} timeout={200}>
+                  <List sx={{ 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    gap: 0.5, 
+                    padding: "4px 6px",
+                    my: 0
+                  }}>
+                    {groupedEvents[category].map((event, index) => (
+                      <ListItem key={index} disablePadding sx={{ minHeight: "auto" }}>
+                        <Card sx={{
+                          width: "100%",
+                          borderRadius: 1.5,
+                          boxShadow: 1,
+                          overflow: "hidden",
+                          transition: "box-shadow 0.2s ease-in-out",
+                          "&:hover": {
+                            boxShadow: 2
+                          }
                         }}>
-                          <EventComponent
-                            title={event.title}
-                            description={event.description}
-                            category={event.category}
-                          />
-                        </CardContent>
-                      </Card>
-                    </ListItem>
-                  ))}
-                </List>
-              </Collapse>
-            </Card>
-          ))}
-        </List>
+                          <CardContent sx={{ 
+                            padding: "8px 12px", 
+                            "&:last-child": { paddingBottom: "8px" }
+                          }}>
+                            <EventComponent
+                              title={event.title}
+                              description={event.description}
+                              category={event.category}
+                              impact={event.impact}
+                            />
+                          </CardContent>
+                        </Card>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Collapse>
+              </Card>
+            ))}
+          </List>
+        </Collapse>
       </Collapse>
       
       {!isTracking && (

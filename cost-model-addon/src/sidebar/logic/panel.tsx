@@ -18,15 +18,19 @@ export default function SideBar() {
 			payload: { enabled: !isTracking },
 		});
 
-		const { contentNotified, devtoolsNotified } = response.payload;
+		const { contentNotified, devtoolsNotified, monitorEnabled} = response.payload;
 
-		if (!contentNotified || !devtoolsNotified) {
+		if (!contentNotified || !devtoolsNotified || !monitorEnabled) {
 			if (!contentNotified) {
 			  console.error("[Sidebar] Error: Content script may not be injected");
 			}
 			if (!devtoolsNotified) {
 			  console.error("[Sidebar] Error: Devtools may not be open");
 			}
+
+      if (!monitorEnabled) {
+        console.error("[Sidebar] Error: WebSocket connection not established");
+      }
 			return;
 		}
 		  

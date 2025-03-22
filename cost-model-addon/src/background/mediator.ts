@@ -49,37 +49,28 @@ export class BackgroundMediator {
             switch (message.type) {
                 case MessageType.TOGGLE_TRACKING:
                     const [result] = await eventBus.publish("TOGGLE_TRACKING", message.payload.enabled);
-                    if (result?.contentNotified && result?.devtoolsNotified) {
+                    if (result?.contentNotified && result?.devtoolsNotified && result?.monitorEnabled) {
                         sendResponse({ status: "success", payload: result });
                     } else {
                         sendResponse({ status: "error", payload: result });
                     }
-                    break;
-                    
+                    break; 
             }
         }
     }
 
-    private async handleToggleTracking(event: RuntimeMessage): Promise<{ contentNotified: boolean, devtoolsNotified: boolean }> {
+    private async handleToggleTracking(event: RuntimeMessage): Promise<{ contentNotified: boolean, devtoolsNotified: boolean, monitorEnabled: boolean }> {
         // Update the tracking state and get a message to send.
         const trackingMessage = await this.updateTrackingState(event.payload.enabled);
     
         // Send notifications concurrently and await both.
-        const [contentNotified , devtoolsNotified ] = await Promise.all([
+        const [contentNotified , devtoolsNotified, monitorEnabled ] = await Promise.all([
             this.notifyContentScript(trackingMessage),
-            this.notifyDevtools(trackingMessage)
+            this.notifyDevtools(trackingMessage),
+            this.toggleTrackingListeners(event.payload.enabled)
         ]);
-    
-        // Optionally handle the case where devtools were not notified.
-        if (!devtoolsNotified) {
-            console.warn("Devtools notification failed or devtools are not open.");
-        }
 
-        if (!contentNotified) {
-            console.warn("Content script notification failed or content script is not active.");
-        }
-
-        return { contentNotified, devtoolsNotified };
+        return { contentNotified, devtoolsNotified, monitorEnabled };
     }
 
     /**
@@ -263,20 +254,29 @@ export class BackgroundMediator {
     /**
      * Toggle system-level watchers based on new tracking state.
      */
-    private async toggleTrackingListeners(newState: boolean) {
-        if (newState) {
-            this.websocketService.connect("BackgroundMediator");
-            this.cpuMonitor = await monitorCpuUsageActive(0);
-            addEventListener('cpu-spike', this.cpuSpikeListener);
-        } else {
-            this.websocketService.disconnect();
-
-            if (this.cpuMonitor) {
+    private async toggleTrackingListeners(newState: boolean): Promise<boolean> {
+        try {
+            if (newState) {
+                await this.websocketService.connect("BackgroundMediator");
+                this.cpuMonitor = await monitorCpuUsageActive(0);
+                window.addEventListener('cpu-spike', this.cpuSpikeListener);
+            } else {
+                this.websocketService.disconnect();
+                if (this.cpuMonitor) {
+                    this.cpuMonitor.cancel();
+                    this.cpuMonitor = null;
+                }
+                window.removeEventListener('cpu-spike', this.cpuSpikeListener);
+            }
+            return true;
+        } catch (error) {
+            console.error("[Background] Failed to toggle listeners:", error);
+            // Cleanup partial setup if needed
+            if (newState && this.cpuMonitor) {
                 this.cpuMonitor.cancel();
                 this.cpuMonitor = null;
             }
-
-            removeEventListener('cpu-spike', this.cpuSpikeListener);
+            return false;
         }
     }
 

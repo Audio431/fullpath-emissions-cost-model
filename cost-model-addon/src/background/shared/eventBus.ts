@@ -1,7 +1,5 @@
-// Generic signature for callbacks
 type EventCallback<T = any> = (data: T) => void;
 
-// Internal mapping of event names to arrays of callbacks
 type EventMap = {
 	[eventName: string]: EventCallback[];
 };
@@ -27,8 +25,17 @@ class EventBus {
 		);
 	}
 
+	// Subscribe to an event, but only once
+	public once<T>(eventName: string, callback: EventCallback<T>): void {
+		const wrapper: EventCallback<T> = (data: T) => {
+			callback(data);
+			this.off(eventName, wrapper);
+		};
+		this.on(eventName, wrapper);
+	}
+
 	// Publish (emit) an event
-	public publish<T>(eventName: string, data: T): void {
+	public publish<T>(eventName: string, data?: T): void {
 		const callbacks = this.events[eventName];
 		if (!callbacks || callbacks.length === 0) {
 			return;
@@ -39,5 +46,4 @@ class EventBus {
 	}
 }
 
-// Export a single instance (singleton) for the entire extension
 export const eventBus = new EventBus();

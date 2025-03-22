@@ -14,21 +14,7 @@ export class DevtoolsModule {
 	}
 
 	public constructor() {
-		eventBus.on("TOGGLE_TRACKING", this.handleDevtoolsTrackingState.bind(this));
 		eventBus.on("DEVTOOLS_MESSAGE", this.handleDevtoolsMessage.bind(this));
-	}
-
-	private handleDevtoolsTrackingState(payload: MessagePayloads[MessageType.TOGGLE_TRACKING]): void {
-		this.trackingEnabled = payload.enabled;
-
-		const runtimeMessage: RuntimeMessage = {
-			type: MessageType.TOGGLE_TRACKING,
-			payload: {
-				enabled: this.trackingEnabled
-			}
-		};
-
-		eventBus.publish("DEVTOOLS_TOGGLE_TRACKING", runtimeMessage);
 	}
 
 	private isValidJSONString(str: string): boolean {

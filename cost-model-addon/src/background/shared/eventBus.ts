@@ -1,4 +1,5 @@
-type EventCallback<T = any> = (data: T) => void;
+type EventCallback<T = any, R = any> = (data: T) => R | Promise<R>;
+
 
 type EventMap = {
 	[eventName: string]: EventCallback[];
@@ -35,14 +36,12 @@ class EventBus {
 	}
 
 	// Publish (emit) an event
-	public publish<T>(eventName: string, data?: T): void {
+	public async publish<T, R = any>(eventName: string, data?: T): Promise<R[]> {
 		const callbacks = this.events[eventName];
 		if (!callbacks || callbacks.length === 0) {
-			return;
+			return [];
 		}
-		callbacks.forEach((cb) => {
-			cb(data);
-		});
+		return await Promise.all(callbacks.map(async (cb) => await cb(data)));
 	}
 }
 

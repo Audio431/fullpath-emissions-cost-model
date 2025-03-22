@@ -4,7 +4,6 @@ import { MessageType } from "../../common/message.types";
 
 export class DevtoolsModule {
 	private static instance: DevtoolsModule;
-	private trackingEnabled: boolean = false;
 
 	public static getInstance(): DevtoolsModule {
 		if (!this.instance) {
@@ -40,7 +39,6 @@ export class DevtoolsModule {
 				request = undefined;
 			}
 		}
-
 
 		if (!request) {
 			console.error("[DevtoolsModule] Invalid request data received from devtools");

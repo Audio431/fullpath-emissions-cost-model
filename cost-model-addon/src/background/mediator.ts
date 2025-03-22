@@ -26,8 +26,7 @@ export class BackgroundMediator {
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
 
-        eventBus.on("CONTENT_TOGGLE_TRACKING", this.handleContentToggle.bind(this));
-        eventBus.on("DEVTOOLS_TOGGLE_TRACKING", this.handleDevtoolsToggle.bind(this));
+        eventBus.on("RESPONSE_TOGGLE", this.handleToggleTracking.bind(this));
         eventBus.on("DEVTOOLS_SEND_TO_WEBSOCKET", this.handleDevtoolsPortMessage.bind(this));
     }
 
@@ -41,28 +40,46 @@ export class BackgroundMediator {
     /* Establishes the connection between the scripst and the background */
 
     // Handle incoming runtime messages from content scripts, devtools, and sidebar
-    private processExternalMessage(message: RuntimeMessage, sender: any): void {
+    private async processExternalMessage(
+        message: RuntimeMessage, 
+        sender: any, 
+        sendResponse: (response?: any) => void
+    ): Promise<void> {
         if (message.from === 'sidebar') {
             switch (message.type) {
                 case MessageType.TOGGLE_TRACKING:
-                    eventBus.publish("TOGGLE_TRACKING", message.payload);
+                    const [result] = await eventBus.publish("TOGGLE_TRACKING", message.payload.enabled);
+                    if (result?.contentNotified && result?.devtoolsNotified) {
+                        sendResponse({ status: "success", payload: result });
+                    } else {
+                        sendResponse({ status: "error", payload: result });
+                    }
+                    break;
+                    
             }
         }
     }
 
-    /**
-     * Handles toggle tracking events from the EventBus.
-     * Dispatches the updated tracking status to connected clients (e.g., devtools or content script).
-     */
-    private async handleDevtoolsToggle(event: RuntimeMessage) {
+    private async handleToggleTracking(event: RuntimeMessage): Promise<{ contentNotified: boolean, devtoolsNotified: boolean }> {
+        // Update the tracking state and get a message to send.
         const trackingMessage = await this.updateTrackingState(event.payload.enabled);
-        await this.notifyDevtools(trackingMessage);
-    }
+    
+        // Send notifications concurrently and await both.
+        const [contentNotified , devtoolsNotified ] = await Promise.all([
+            this.notifyContentScript(trackingMessage),
+            this.notifyDevtools(trackingMessage)
+        ]);
+    
+        // Optionally handle the case where devtools were not notified.
+        if (!devtoolsNotified) {
+            console.warn("Devtools notification failed or devtools are not open.");
+        }
 
-    private async handleContentToggle(event: RuntimeMessage) {
-        const trackingMessage = await this.updateTrackingState(event.payload.enabled);
-        this.toggleTrackingListeners(event.payload.enabled);
-        await this.notifyContentScript(trackingMessage);
+        if (!contentNotified) {
+            console.warn("Content script notification failed or content script is not active.");
+        }
+
+        return { contentNotified, devtoolsNotified };
     }
 
     /**
@@ -78,14 +95,21 @@ export class BackgroundMediator {
         };
     }
     
-    private async notifyContentScript(message: RuntimeMessage) {
-        const activeTab = await getActiveTab();
-        if (activeTab) {
-            await this.messagingService.sendToTab(activeTab, message);
+    private async notifyContentScript(message: RuntimeMessage): Promise<boolean> {
+        try {
+            const activeTab = await getActiveTab();
+            if (activeTab) {
+                await this.messagingService.sendToTab(activeTab, message);
+                return true; // Successfully notified content script
+            }
+            return false; // No active tab found
+        } catch (error) {
+            console.error("Error in notifyContentScript:", error);
+            return false;
         }
     }
 
-    private async notifyDevtools(message: RuntimeMessage) {
+    private async notifyDevtools(message: RuntimeMessage): Promise<boolean>{
         try {
             const activeTabId = await getActiveTabId();
             const devtoolsPort = this.portConnections.get(activeTabId!)?.['devtools'];
@@ -93,12 +117,14 @@ export class BackgroundMediator {
             // If devtools are open (port is valid)
             if (devtoolsPort) {
                 await this.messagingService.sendPortMessage(devtoolsPort, message);
+                return true; // Successfully notified devtools
             } else {
                 // If devtools are not open, send a notification to Sidebar
-                // await this.messagingService.sendToSidebar(message);
+                return false;
             }
         } catch (error) {
-            console.error('Devtools may not be open:', error);
+            console.error("Error:", error);
+            return false;
         }
     }
 
@@ -199,7 +225,7 @@ export class BackgroundMediator {
 
     // Handle tab updates
     private async handleOnTabUpdate(tabId: number, changeInfo: string, tab: browser.tabs.Tab): Promise<void> {
-        console.log('Port connections:', [...this.portConnections]);
+        console.log('[Background] Port connections:', [...this.portConnections]);
 
         const isTracking = await this.getTrackingState();
 

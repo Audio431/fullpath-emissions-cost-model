@@ -1,4 +1,4 @@
-type MessageCallback = (message: RuntimeMessage, sender: any) => void;
+type MessageCallback = (message: RuntimeMessage, sender: any, sendResponse: (response?: any) => void) => void;
 type PortMessageCallback = (message: RuntimeMessage, port: browser.runtime.Port) => void;
 type TabCallback = (tabId:number, changeInfo: any, tab: browser.tabs.Tab,) => void;
 type PortConnectionCallback = (port: browser.runtime.Port) => void;
@@ -14,11 +14,15 @@ export class MessagingService {
     private updateActiveTabCallback?: TabCallback;
 
     private constructor() {
-        browser.runtime.onMessage.addListener((message: RuntimeMessage, sender) => {
-            this.callback && this.callback(message, sender);
-
+        browser.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendResponse) => {
+            if (this.callback) {
+                this.callback(message, sender, sendResponse);
+                // Return true to signal that sendResponse will be called asynchronously.
+                return true;
+            }
             return false;
         });
+        
 
         browser.runtime.onConnect.addListener((port) => {
             console.log(`[MessagingService] Port connected: ${port.name} (tabId: ${port.sender?.tab?.id})`);
@@ -91,6 +95,9 @@ export class MessagingService {
             if (response) {
                 console.log('[MessagingService] Response from tab:', response);
             }
+
+            return Promise.resolve();
+            
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             
@@ -106,6 +113,8 @@ export class MessagingService {
             } else {
                 console.error('[MessagingService] Error sending message to tab:', error);
             }
+
+            return Promise.reject(error);
         }
     }
 

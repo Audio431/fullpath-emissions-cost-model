@@ -9,38 +9,36 @@ export default function SideBar() {
 	browser.action.onClicked.addListener(() => {
 		browser.sidebarAction.close();
 	});
-
-  const handleTrackingButton = async () => {
-    try {
-      	const response = await browser.runtime.sendMessage({
+	
+	const handleTrackingButton = async () => {
+		try {
+		  const { payload } = await browser.runtime.sendMessage({
 			type: MessageType.TOGGLE_TRACKING,
 			from: "sidebar",
 			payload: { enabled: !isTracking },
-		});
-
-		const { contentNotified, devtoolsNotified, monitorEnabled} = response.payload;
-
-		if (!contentNotified || !devtoolsNotified || !monitorEnabled) {
-			if (!contentNotified) {
-			  console.error("[Sidebar] Error: Content script may not be injected");
+		  });
+	  
+		  // Only validate payload when *enabling* tracking
+		  if (!isTracking) {
+			const { contentNotified = false, devtoolsNotified = false, monitorEnabled = false } = payload || {};
+			const failures: string[] = [];
+	  
+			if (!contentNotified) failures.push("Content script may not be injected");
+			if (!devtoolsNotified) failures.push("Devtools may not be open");
+			if (!monitorEnabled) failures.push("WebSocket connection not established");
+	  
+			if (failures.length) {
+			  failures.forEach(msg => console.error(`[Sidebar] Error: ${msg}`));
+			  return;
 			}
-			if (!devtoolsNotified) {
-			  console.error("[Sidebar] Error: Devtools may not be open");
-			}
-
-      if (!monitorEnabled) {
-        console.error("[Sidebar] Error: WebSocket connection not established");
-      }
-			return;
+		  }
+	  
+		  setIsTracking(prev => !prev);
+		} catch (error) {
+		  console.error("[Sidebar] ToggleTracking failed:", error);
 		}
-		  
-		setIsTracking(!isTracking);
-
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
+	  };
+	  
   return (
     <div style={{ 
       backgroundColor: "#f5f9f5", 

@@ -17,23 +17,19 @@ export class SidebarModule {
 		return this.instance;
 	}
 
-	public userToggledTracking(message: RuntimeMessage): void {
-		this.trackingEnabled = message.payload.enabled;
-		console.log(`User toggled tracking to ${this.trackingEnabled}`);
+	public async userToggledTracking(newState: boolean): Promise<{ contentNotified: boolean, devtoolsNotified: boolean }> {
+		this.trackingEnabled = newState;
 
-		eventBus.publish("CONTENT_TOGGLE_TRACKING", {
+		const trackingMessage = {
 			type: MessageType.TOGGLE_TRACKING,
 			payload: { enabled: this.trackingEnabled }
-		})
+		};
 		
-		eventBus.publish("DEVTOOLS_TOGGLE_TRACKING", {
-			type: MessageType.TOGGLE_TRACKING,
-			payload: { enabled: this.trackingEnabled }
-		})
+		const [response] = await eventBus.publish("RESPONSE_TOGGLE", trackingMessage);
+		return response;
 	}
-
-	public sendTrackingStatus(): void {
-		eventBus.publish("RESPONSE_TRACKING_STATE", {
+	public async sendTrackingStatus(): Promise<void> {
+		await eventBus.publish("RESPONSE_TRACKING_STATE", {
 			type: MessageType.TRACKING_STATE,
 			payload: { enabled: this.trackingEnabled }
 		})

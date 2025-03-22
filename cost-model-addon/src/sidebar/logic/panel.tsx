@@ -4,21 +4,34 @@ import EventsBox from "../components/eventBox";
 import { MessageType } from "../../common/message.types";
 
 export default function SideBar() {
-  const [isTracking, setIsTracking] = React.useState(false);
+	const [isTracking, setIsTracking] = React.useState(false);
 
-  browser.action.onClicked.addListener(() => {
-    browser.sidebarAction.close();
-  });
+	browser.action.onClicked.addListener(() => {
+		browser.sidebarAction.close();
+	});
 
   const handleTrackingButton = async () => {
     try {
-      const response = await browser.runtime.sendMessage({
-        type: MessageType.TOGGLE_TRACKING,
-        from: "sidebar",
-        payload: { enabled: !isTracking },
-      });
+      	const response = await browser.runtime.sendMessage({
+			type: MessageType.TOGGLE_TRACKING,
+			from: "sidebar",
+			payload: { enabled: !isTracking },
+		});
 
-      setIsTracking(!isTracking);
+		const { contentNotified, devtoolsNotified } = response.payload;
+
+		if (!contentNotified || !devtoolsNotified) {
+			if (!contentNotified) {
+			  console.error("[Sidebar] Error: Content script may not be injected");
+			}
+			if (!devtoolsNotified) {
+			  console.error("[Sidebar] Error: Devtools may not be open");
+			}
+			return;
+		}
+		  
+		setIsTracking(!isTracking);
+
     } catch (error) {
       console.error("Error:", error);
     }

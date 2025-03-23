@@ -127,7 +127,7 @@ export class MessagingService {
     }
 
     public async sendPortMessage(port: browser.runtime.Port, msg: any): Promise<void> {
-        console.log('[MessagingService] sending message to port:', port.name);
+        // console.log('[MessagingService] sending message to port:', port.name);
         port.postMessage(msg);
     }
 }

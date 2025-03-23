@@ -31,13 +31,14 @@ export default function SideBar() {
   
       // Only validate payload when *enabling* tracking
       if (!isTracking) {
-        const { contentNotified = false, devtoolsNotified = false, monitorEnabled = false } = payload || {};
+        const { contentNotified = false, devtoolsNotified = false, WebSocketConnected = false, CPUUsageMonitoring = false} = payload || {};
         const failures: string[] = [];
-  
+
         if (!contentNotified) failures.push("Content script may not be injected");
         if (!devtoolsNotified) failures.push("Devtools may not be open");
-        if (!monitorEnabled) failures.push("WebSocket connection not established");
-  
+        if (!WebSocketConnected) failures.push("WebSocket connection not established");
+        if (!CPUUsageMonitoring) failures.push("CPU monitoring not started");
+      
         if (failures.length) {
           failures.forEach(msg => console.error(`[Sidebar] Error: ${msg}`));
           setErrors(failures);

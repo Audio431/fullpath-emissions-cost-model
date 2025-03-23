@@ -33,7 +33,7 @@ export class DevtoolsModule {
 		let request: Request | undefined;
 		if (message.payload.request && this.isValidJSONString(message.payload.request)) {
 			try {
-		request = JSON.parse(message.payload.request) as Request;
+				request = JSON.parse(message.payload.request) as Request;
 			} catch (error) {
 				console.error("Error parsing HAR log JSON:", error);
 				request = undefined;

@@ -105,7 +105,7 @@ async function createMessageHandler(ws: WebSocket, clientId: string) : Promise<(
 
 async function handleCpuUsage(ws: WebSocket, clientId: string, payload: any) {
 	await aggregationService.processAggregatedData(payload);
-	ws.send(`Received CPU Usage: ${payload.cpuUsage}`);
+	ws.send(`Received CPU Usage: ${payload.tabInfo.pid} - ${payload.cpuUsage} - ${payload.tabInfo.title}`);
 }
 
 // Handle network data

@@ -232,6 +232,14 @@ this.myAPI = class extends ExtensionAPI {
           return tabs;
         },
 
+        async getActiveTabOuterWindowID() {
+          let win = Services.wm.getMostRecentWindow("navigator:browser");
+          if (!win) {
+            return null;
+          }
+          return win.gBrowser.selectedBrowser.outerWindowID;
+        },
+
         async getCollapsSubframe(pid) {
           let main = await ChromeUtils.requestProcInfo();
           let child = main.children.find((child) => child.pid === pid);

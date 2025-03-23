@@ -27,6 +27,7 @@ export async function getCPUUsageOfActiveTab(): Promise<{ child: ChildProcessInf
 
 	const activeTab = await getActiveTab();
 	const outerWindowID = await getActiveTabOuterWindowID();
+	const children = await getChildProcesses();
 	
 	if (!activeTab) {
 		throw new Error("No active tab found");
@@ -36,19 +37,17 @@ export async function getCPUUsageOfActiveTab(): Promise<{ child: ChildProcessInf
 		throw new Error("No active tab outer window ID found");
 	}
 
-	const child = (await Promise.all(
-		(await getChildProcesses()).map(child =>
-			Promise.all(child.windows.map(window => getTabFluentname(window.outerWindowId)))
-				.then(names => activeTab.title && names.includes(activeTab.title) ? child : null)
-		)
-	)).find(child => child !== null);
+
+	const child = children.find(ch =>
+		ch.windows.some(win => win.outerWindowId === outerWindowID)
+	);
 
 	const tabInfo = {
 		outerWindowID,
 		tabId: activeTab.id,
 		title: activeTab.title,
 		pid: child?.pid
-	  };
+	};
 	  
 
 	if (!child) {

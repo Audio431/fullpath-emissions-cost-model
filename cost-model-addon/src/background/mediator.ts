@@ -1,4 +1,4 @@
-import { getActiveTabId, MessagingService } from './services';
+import { getActiveTabId, MessagingService, TabInfo } from './services';
 import { getActiveTab } from './services';
 import { MessageType, Action } from '../common/message.types';
 import { WebSocketService } from './services';
@@ -59,19 +59,22 @@ export class BackgroundMediator {
         }
     }
 
-    private async handleToggleTracking(event: RuntimeMessage): Promise<{ contentNotified: boolean, devtoolsNotified: boolean, monitorEnabled: boolean }> {
+    private async handleToggleTracking(event: RuntimeMessage): Promise<{ contentNotified: boolean, devtoolsNotified: boolean, WebSocketConnected: boolean, CPUUsageMonitoring: boolean }> {
         // Update the tracking state and get a message to send.
         const trackingMessage = await this.updateTrackingState(event.payload.enabled);
     
         // Send notifications concurrently and await both.
-        const [contentNotified , devtoolsNotified, monitorEnabled ] = await Promise.all([
+        const [contentNotified , devtoolsNotified] = await Promise.all([
             this.notifyContentScript(trackingMessage),
             this.notifyDevtools(trackingMessage),
-            this.toggleTrackingListeners(event.payload.enabled)
         ]);
 
-        return { contentNotified, devtoolsNotified, monitorEnabled };
+        const WebSocketConnected = await this.toggleWebsocketConnection(contentNotified && devtoolsNotified && event.payload.enabled);
+        const CPUUsageMonitoring = await this.toggleCPUUsageMonitoring(contentNotified && devtoolsNotified && event.payload.enabled);
+
+        return { contentNotified, devtoolsNotified, WebSocketConnected, CPUUsageMonitoring };
     }
+
 
     /**
      * Shared function that handles the "what it means to set tracking on/off"
@@ -254,14 +257,27 @@ export class BackgroundMediator {
     /**
      * Toggle system-level watchers based on new tracking state.
      */
-    private async toggleTrackingListeners(newState: boolean): Promise<boolean> {
+
+    private async toggleWebsocketConnection(newState: boolean): Promise<boolean> {
         try {
             if (newState) {
                 await this.websocketService.connect("BackgroundMediator");
+            } else {
+                this.websocketService.disconnect();
+            }
+            return true;
+        } catch (error) {
+            console.error("[Background] Failed to toggle websocket connection:", error);
+            return false;
+        }
+    }
+
+    private async toggleCPUUsageMonitoring(newState: boolean): Promise<boolean> {
+        try {
+            if (newState) {
                 this.cpuMonitor = await monitorCpuUsageActive(0);
                 window.addEventListener('cpu-spike', this.cpuSpikeListener);
             } else {
-                this.websocketService.disconnect();
                 if (this.cpuMonitor) {
                     this.cpuMonitor.cancel();
                     this.cpuMonitor = null;
@@ -270,18 +286,13 @@ export class BackgroundMediator {
             }
             return true;
         } catch (error) {
-            console.error("[Background] Failed to toggle listeners:", error);
-            // Cleanup partial setup if needed
-            if (newState && this.cpuMonitor) {
-                this.cpuMonitor.cancel();
-                this.cpuMonitor = null;
-            }
+            console.error("[Background] Failed to toggle CPU usage monitoring:", error);
             return false;
         }
     }
 
     private cpuSpikeListener = (event: Event) => {
-        const customEvent = event as CustomEvent<{ cpuUsage: number; activeTab: string }>;
+        const customEvent = event as CustomEvent<{ cpuUsage: number; tabInfo: TabInfo }>;
 
         const runtimeMessage: RuntimeMessage = {
             type: MessageType.CPU_USAGE,

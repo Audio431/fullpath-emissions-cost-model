@@ -1,4 +1,4 @@
-import { getTabOuterWindowIDs, getActiveTab, getTabFluentname } from "./tab";
+import { getTabOuterWindowIDs, getActiveTab, getTabFluentname, getActiveTabOuterWindowID, TabInfo } from "./tab";
 
 export async function handleCPUUsageRequest(): Promise<MainProcessInfo> {
 	const CPUInfo = await browser.myAPI.getCPUInfo();
@@ -23,12 +23,17 @@ async function getCurrentTabsProcesses(): Promise<(ChildProcessInfo | string)[]>
 	return tabs;
 }
 
-export async function getCPUUsageOfActiveTab(): Promise<{ child: ChildProcessInfo, activeTab: browser.tabs.Tab }> {
+export async function getCPUUsageOfActiveTab(): Promise<{ child: ChildProcessInfo, tabInfo: TabInfo }> {
 
 	const activeTab = await getActiveTab();
-
+	const outerWindowID = await getActiveTabOuterWindowID();
+	
 	if (!activeTab) {
 		throw new Error("No active tab found");
+	}
+
+	if (!outerWindowID) {
+		throw new Error("No active tab outer window ID found");
 	}
 
 	const child = (await Promise.all(
@@ -38,11 +43,19 @@ export async function getCPUUsageOfActiveTab(): Promise<{ child: ChildProcessInf
 		)
 	)).find(child => child !== null);
 
+	const tabInfo = {
+		outerWindowID,
+		tabId: activeTab.id,
+		title: activeTab.title,
+		pid: child?.pid
+	  };
+	  
+
 	if (!child) {
 		throw new Error("No matching child process found for active tab");
 	}
 
-	return { child, activeTab };
+	return { child , tabInfo };
 }
 
 export interface MonitorCpuUsageController {
@@ -66,7 +79,7 @@ export async function monitorCpuUsageActive(cpuSpikeThreshold: number): Promise<
 			try {
 				const now = Date.now();
 
-				const { child: cpuinfo, activeTab: activeTab } = await getCPUUsageOfActiveTab();
+				const { child: cpuinfo, tabInfo: tabInfo } = await getCPUUsageOfActiveTab();
 				const cpuTime = cpuinfo.cpuTime;
 				const cpuCycleCount = cpuinfo.cpuCycleCount;
 
@@ -79,11 +92,11 @@ export async function monitorCpuUsageActive(cpuSpikeThreshold: number): Promise<
 					const utilisation = (cpuTime - prev.cpuTime) / elapsedNs;
 					// const isActive = usageRate > 0 || cpuCycleCount > prev.cycles;
 
-					// if (utilisation > cpuSpikeThreshold) {
-					dispatchEvent(new CustomEvent("cpu-spike", {
-						detail: { cpuUsage, activeTab: activeTab.title }
-					}));
-					// }
+					if (utilisation > cpuSpikeThreshold) {
+						dispatchEvent(new CustomEvent("cpu-spike", {
+							detail: { cpuUsage, tabInfo }
+						}));
+					}
 
 					// addEventListener('cpu-clicked', (event) => {
 					// 	const customEvent = event as CustomEvent<{}>;

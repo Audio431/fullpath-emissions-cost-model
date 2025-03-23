@@ -53,6 +53,7 @@ declare global {
     interface MyAPI {
         getCPUInfo(): Promise<MainProcessInfo>;
         getTabOuterWindowIDs(): Promise<Map<outerWindowIDMap>>;
+        getActiveTabOuterWindowID(): Promise<number>;
     }
 
     namespace browser {

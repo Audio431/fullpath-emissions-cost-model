@@ -42,6 +42,13 @@
           "parameters": []
         },
         {
+          "name": "getActiveTabOuterWindowID",
+          "type": "function",
+          "description": "Get the outer window ID of the active tab.",
+          "async": true,
+          "parameters": []
+        },
+        {
           "name": "getCollapseSubFrame",
           "type": "function",
           "description": "Get subframe of the process without duplicates.",

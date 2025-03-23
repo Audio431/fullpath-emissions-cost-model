@@ -2,7 +2,7 @@ import { getActiveTabId, MessagingService, TabInfo } from './services';
 import { getActiveTab } from './services';
 import { MessageType, Action } from '../common/message.types';
 import { WebSocketService } from './services';
-import { MonitorCpuUsageController, monitorCpuUsageActive } from './services';
+import { MonitorCpuUsageController, monitorCpuUsageAll } from './services';
 import { eventBus } from './shared/eventBus';
 
 export class BackgroundMediator {
@@ -154,36 +154,36 @@ export class BackgroundMediator {
         }
     }
 
-        // Handle content script messages
-        private async handleContentPortMessage(message: RuntimeMessage, port: browser.runtime.Port): Promise<void> {
-            switch (message.type) {
-                case MessageType.EVENT_LISTENER:
-                    this.handleContentEvent(message.payload);
-                    break;
-            }
+    // Handle content script messages
+    private async handleContentPortMessage(message: RuntimeMessage, port: browser.runtime.Port): Promise<void> {
+        switch (message.type) {
+            case MessageType.EVENT_LISTENER:
+                this.handleContentEvent(message.payload);
+                break;
         }
-    
-        /**
-         * Process the message and sends it to the appropriate handler.
-         * handleContentPortMessage -> handleContentEvent
-         */
-        private async handleContentEvent (payload: EventPayload<Action>) {
-            switch (payload.event) {
-                case Action.CLICK_EVENT:
-                    // this.messagingService.sendToRuntime({
-                    //     type: MessageType.EVENT_LISTENER,
-                    //     payload: payload
-                    // });
-                    break;
-    
-                case Action.SCROLL_EVENT:
-                    // this.messagingService.sendToRuntime({
-                    //     type: MessageType.EVENT_LISTENER,
-                    //     payload: payload
-                    // });
-                    break;
-            }
+    }
+
+    /**
+     * Process the message and sends it to the appropriate handler.
+     * handleContentPortMessage -> handleContentEvent
+     */
+    private async handleContentEvent (payload: EventPayload<Action>) {
+        switch (payload.event) {
+            case Action.CLICK_EVENT:
+                // this.messagingService.sendToRuntime({
+                //     type: MessageType.EVENT_LISTENER,
+                //     payload: payload
+                // });
+                break;
+
+            case Action.SCROLL_EVENT:
+                // this.messagingService.sendToRuntime({
+                //     type: MessageType.EVENT_LISTENER,
+                //     payload: payload
+                // });
+                break;
         }
+    }
 
     private async handleDevtoolsPortMessage(message: any, port?: browser.runtime.Port): Promise<void> {
         switch (message.type) {
@@ -272,26 +272,32 @@ export class BackgroundMediator {
         }
     }
 
+
     private async toggleCPUUsageMonitoring(newState: boolean): Promise<boolean> {
         try {
-            if (newState) {
-                this.cpuMonitor = await monitorCpuUsageActive(0);
-                window.addEventListener('cpu-spike', this.cpuSpikeListener);
-            } else {
-                if (this.cpuMonitor) {
-                    this.cpuMonitor.cancel();
-                    this.cpuMonitor = null;
-                }
-                window.removeEventListener('cpu-spike', this.cpuSpikeListener);
+          if (newState) {
+            // Use the new monitor function instead
+            this.cpuMonitor = await monitorCpuUsageAll(0);
+            
+            // Listen for both active and background events
+            window.addEventListener('cpu-spike', this.CPUListener);
+            window.addEventListener('background-cpu-spike', this.backgroundCPUListener);
+          } else {
+            if (this.cpuMonitor) {
+              this.cpuMonitor.cancel();
+              this.cpuMonitor = null;
             }
-            return true;
+            window.removeEventListener('cpu-spike', this.CPUListener);
+            window.removeEventListener('background-cpu-spike', this.backgroundCPUListener);
+          }
+          return true;
         } catch (error) {
-            console.error("[Background] Failed to toggle CPU usage monitoring:", error);
-            return false;
+          console.error("[Background] Failed to toggle CPU usage monitoring:", error);
+          return false;
         }
-    }
+      }
 
-    private cpuSpikeListener = (event: Event) => {
+    private CPUListener = (event: Event) => {
         const customEvent = event as CustomEvent<{ cpuUsage: number; tabInfo: TabInfo }>;
 
         const runtimeMessage: RuntimeMessage = {
@@ -299,6 +305,15 @@ export class BackgroundMediator {
             payload: customEvent.detail
         };
 
+        this.websocketService.sendMessage(runtimeMessage);
+    };
+
+    private backgroundCPUListener = (event: Event) => {
+        const customEvent = event as CustomEvent<{ cpuUsage: number; tabInfo: TabInfo }>;
+        const runtimeMessage: RuntimeMessage = {
+            type: MessageType.BACKGROUND_CPU_USAGE,  // Need to add this new message type
+            payload: customEvent.detail
+        };
         this.websocketService.sendMessage(runtimeMessage);
     };
 

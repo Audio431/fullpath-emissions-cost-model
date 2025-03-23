@@ -3,7 +3,7 @@ import Pie, { ProvidedProps, PieArcDatum } from '@visx/shape/lib/shapes/Pie';
 import { scaleOrdinal } from '@visx/scale';
 import { Group } from '@visx/group';
 import { GradientLightgreenGreen } from '@visx/gradient';
-import { animated, useTransition, interpolate } from '@react-spring/web';
+import { animated, useTransition, to } from '@react-spring/web';
 import { Typography, Box } from '@mui/material';
 
 // Types for our carbon impact data
@@ -344,7 +344,7 @@ function AnimatedPie<Datum>({
   return transitions((props, arc, { key }) => {
     const [centroidX, centroidY] = path.centroid(arc);
     const hasSpaceForLabel = arc.endAngle - arc.startAngle >= 0.2;
-    const arcPath = interpolate(
+    const arcPath = to(
       [props.startAngle, props.endAngle], 
       (startAngle, endAngle) => path({
         ...arc,

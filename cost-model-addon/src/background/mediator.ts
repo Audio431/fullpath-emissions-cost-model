@@ -26,6 +26,8 @@ export class BackgroundMediator {
         this.messagingService.setOnUpdateListener(this.handleOnTabUpdate.bind(this));
         this.messagingService.setOnActiveTabUpdateListener(this.handleOnTabUpdate.bind(this));
 
+        this.websocketService.setMessageHandler(this.processServerMessage.bind(this));
+
         eventBus.on("RESPONSE_TOGGLE", this.handleToggleTracking.bind(this));
         eventBus.on("DEVTOOLS_SEND_TO_WEBSOCKET", this.handleDevtoolsPortMessage.bind(this));
     }
@@ -35,6 +37,23 @@ export class BackgroundMediator {
             BackgroundMediator.instance = new BackgroundMediator();
         }
         return BackgroundMediator.instance;
+    }
+
+
+    private async processServerMessage(message: any): Promise<void> {
+        console.log("[Background] Server message:", message);
+        switch (message.type) {
+            case "AGGREGATED_CPU_USAGE":
+                // eventBus.publish("AGGREGATED_CPU_USAGE", message.payload);
+                console.log("Aggregated CPU usage:", message.payload);
+                break;
+            case MessageType.BACKGROUND_CPU_USAGE:
+                // eventBus.publish("BACKGROUND_CPU_USAGE", message.payload);
+                break;
+            case MessageType.NETWORK_DATA:
+                // eventBus.publish("NETWORK_DATA", message.payload);
+                break;
+        }
     }
  
     /* Establishes the connection between the scripst and the background */

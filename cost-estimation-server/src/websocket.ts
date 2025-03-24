@@ -85,6 +85,11 @@ async function createMessageHandler(ws: WebSocket, clientId: string) : Promise<(
 					await handleCpuUsage(ws, clientId, data.payload);
 					break;
 
+				case 'BACKGROUND_CPU_USAGE':
+					// await handleCpuUsage(ws, clientId, data.payload);
+					logger.info(`Client ${clientId} sent background CPU usage: ${data.payload}`);
+					break;
+
 				case 'NETWORK_DATA':
 					handleNetworkData(ws, clientId, data.payload);
 					break;
@@ -111,25 +116,39 @@ async function handleCpuUsage(ws: WebSocket, clientId: string, payload: any) {
 // Handle network data
 async function handleNetworkData(ws: WebSocket, clientId: string, payload: any) {
 	logger.info(util.inspect(`Client ${clientId} sent network usage: ${payload}`));
-	ws.send(`Echo: ${JSON.stringify({ type: 'NETWORK_DATA', payload })}`);
+	await aggregationService.processNetworkData(payload);
+	// ws.send(JSON.stringify({ type: 'NETWORK_DATA', data: payload }));
+	ws.send(`Received Network Data: ${payload.tabId} - ${payload.networkTransferMetrics}`);
 }
 
+function mapToObject(map: Map<any, any>) {
+	const obj: Record<string, any> = {};
+	for (const [key, value] of map.entries()) {
+	  if (value instanceof Map) {
+		obj[key] = mapToObject(value); // Handle nested maps
+	  } else {
+		obj[key] = value;
+	  }
+	}
+	return obj;
+  }
+  
 async function handlePrepareToClose(ws: WebSocket, clientId: string) {
 	ws.send('Sending aggregated data to client...');
 
 	const aggregatedData = await aggregationService.getAggregatedDataOfEachTab();
 	const co2Emissions = await aggregationService.convertCPUTimeToCO2Emissions();
 
-	ws.send(JSON.stringify([
-		{
-			type: 'AGGREGATED_CPU_USAGE',
-			payload: util.inspect(aggregatedData, { showHidden: false, depth: null })
+	ws.send(JSON.stringify({
+		'AGGREGATED_CPU_USAGE' : {
+			// payload: util.inspect(aggregatedData, { showHidden: false, depth: null })
+			payload: mapToObject(aggregatedData)
 		},
-		{
-			type: 'CO2_EMISSIONS',
-			payload: util.inspect(co2Emissions, { showHidden: false, depth: null })
+		'CO2_EMISSIONS' : {
+			// payload: util.inspect(co2Emissions, { showHidden: false, depth: null })
+			payload: mapToObject(co2Emissions)
 		}
-	]));
+	}));
 
 	ws.send('Closing WebSocket connection...');
 	ws.close();

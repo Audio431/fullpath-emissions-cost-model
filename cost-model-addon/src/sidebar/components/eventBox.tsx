@@ -11,6 +11,7 @@ interface EventProps {
 
 interface EventListProps {
   isTracking: boolean;
+  hasResults?: boolean;
 }
 
 function EventComponent(props: EventProps) {
@@ -44,7 +45,7 @@ function EventComponent(props: EventProps) {
   );
 }
 
-export default function EventsBox({ isTracking = false }: EventListProps) {
+export default function EventsBox({ isTracking = false, hasResults = false }: EventListProps) {
   // State to track which categories are expanded
   const [expandedCategories, setExpandedCategories] = React.useState<Record<string, boolean>>({
     "Device Emissions": true,
@@ -115,34 +116,47 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
   // Get unique categories
   const categories = Object.keys(groupedEvents);
 
+  // Check if we have data to display (either actively tracking or have saved results)
+  const showData = isTracking || hasResults;
+
   return (
     <Box sx={{ 
       bgcolor: "transparent", 
-      p: 2,
+      p: { xs: 1, sm: 2 },
       transition: "all 0.3s ease-in-out",
       position: "relative"
     }}>
 
       <Typography variant="h5" sx={{ 
-        mb: 2, 
+        mb: 1.5, 
         fontWeight: "bold",
         transition: "color 0.3s ease-in-out",
         color: "#2e7d32",
         display: "flex",
         alignItems: "center",
         gap: 1,
-        fontSize: "1.1rem"
+        fontSize: { xs: "0.95rem", sm: "1.1rem" },
+        flexWrap: "wrap"
       }}>
-        Carbon Impact {isTracking && <span style={{ color: "#81c784", fontSize: "0.8em", fontWeight: "normal" }}>(Live Monitoring)</span>}
+        Carbon Impact {isTracking && <span style={{ color: "#81c784", fontSize: "0.8em", fontWeight: "normal" }}>(Live)</span>}
+        {!isTracking && hasResults && <span style={{ color: "#ffa000", fontSize: "0.8em", fontWeight: "normal" }}>(Results)</span>}
       </Typography>
       
-      <Collapse in={isTracking} timeout={300}>
-        <Box sx={{ mb: 2, px: 1, py: 1.5, bgcolor: "rgba(76, 175, 80, 0.08)", borderRadius: 1.5, border: "1px dashed #81c784" }}>
-          <Typography variant="body2" sx={{ color: "#2e7d32", display: "flex", alignItems: "center", gap: 1 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      {/* Show data if tracking or if we have results */}
+      <Collapse in={showData} timeout={300}>
+        <Box sx={{ mb: 1.5, px: 1, py: 1.5, bgcolor: "rgba(76, 175, 80, 0.08)", borderRadius: 1.5, border: "1px dashed #81c784" }}>
+          <Typography variant="body2" sx={{ 
+            color: "#2e7d32", 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 1,
+            fontSize: { xs: "0.7rem", sm: "0.75rem" },
+            flexWrap: "wrap"
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#43a047"/>
             </svg>
-            Today's estimated emissions: <b>485g CO₂</b>
+            Today's emissions: <b>485g CO₂</b>
             <span style={{ color: "#e53935", fontWeight: "medium", fontSize: "0.85em", marginLeft: "auto" }}>
               +125g
             </span>
@@ -150,7 +164,7 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
         </Box>
         
         {/* View toggle buttons */}
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2, gap: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 1.5, gap: 1 }}>
           <Button 
             variant={showChart ? "contained" : "outlined"} 
             size="small"
@@ -158,7 +172,9 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
             sx={{ 
               borderRadius: "20px",
               textTransform: "none",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
+              padding: { xs: "3px 8px", sm: "4px 12px" },
+              minWidth: { xs: "60px", sm: "auto" },
               color: showChart ? "white" : "#2e7d32",
               backgroundColor: showChart ? "#43a047" : "transparent",
               borderColor: "#43a047",
@@ -167,7 +183,7 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
               }
             }}
           >
-            Chart View
+            Chart
           </Button>
           <Button 
             variant={!showChart ? "contained" : "outlined"} 
@@ -176,7 +192,9 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
             sx={{ 
               borderRadius: "20px",
               textTransform: "none",
-              fontSize: "0.75rem",
+              fontSize: { xs: "0.65rem", sm: "0.75rem" },
+              padding: { xs: "3px 8px", sm: "4px 12px" },
+              minWidth: { xs: "60px", sm: "auto" },
               color: !showChart ? "white" : "#2e7d32",
               backgroundColor: !showChart ? "#43a047" : "transparent",
               borderColor: "#43a047",
@@ -185,7 +203,7 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
               }
             }}
           >
-            List View
+            List
           </Button>
         </Box>
         
@@ -207,7 +225,7 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
             flexDirection: "column", 
             gap: 1.5,
             transition: "all 0.3s ease-in-out",
-            transform: isTracking ? "translateY(0)" : "translateY(10px)",
+            transform: showData ? "translateY(0)" : "translateY(10px)",
           }}>
             {categories.map((category) => (
               <Card key={category} sx={{ 
@@ -215,7 +233,7 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
                 borderRadius: 2, 
                 overflow: "hidden",
                 transition: "box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out",
-                boxShadow: isTracking ? "0 2px 8px rgba(76, 175, 80, 0.15)" : "none",
+                boxShadow: showData ? "0 2px 8px rgba(76, 175, 80, 0.15)" : "none",
                 border: "1px solid rgba(76, 175, 80, 0.2)",
                 backgroundColor: "rgba(255, 255, 255, 0.9)",
                 mb: 0.5
@@ -304,7 +322,8 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
         </Collapse>
       </Collapse>
       
-      {!isTracking && (
+      {/* Only show this message when not tracking AND no results */}
+      {!isTracking && !hasResults && (
         <Box sx={{ 
           my: 3, 
           p: 3, 
@@ -318,10 +337,10 @@ export default function EventsBox({ isTracking = false }: EventListProps) {
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1-6c0 .55-.45 1-1 1s-1-.45-1-1V7c0-.55.45-1 1-1s1 .45 1 1v5z" fill="#81c784"/>
           </svg>
           <Typography variant="body2" sx={{ color: "#2e7d32", mb: 1 }}>
-            Carbon impact monitoring is paused
+            Currently no result
           </Typography>
           <Typography variant="caption" sx={{ color: "#607d8b", display: "block" }}>
-            Start monitoring to track your digital carbon footprint
+            Start monitoring to view carbon impact data
           </Typography>
         </Box>
       )}

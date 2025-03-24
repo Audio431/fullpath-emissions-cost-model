@@ -45,9 +45,37 @@ export class DevtoolsModule {
 			return;
 		}
 
+
+
 		const filteredRequests = this.matchesCriteria(request, {
 			isTimeNotZero: true,
 		});
+
+		// Choose only some metrics to send to the server
+		const networkTransferMetrics: any = {
+			request: {
+				method: request.request.method,
+				url: request.request.url,
+				bodySize: request.request.bodySize,
+				headersSize: request.request.headersSize,
+				content_length: request.request.headers.find((header: Header) => header.name.toLowerCase() === "content-length")?.value,
+
+			},
+			response: {
+				status: request.response.status,
+				mimeType: request.response.content.mimeType ?? "",
+				fileName: request.request.url.split("/").pop(),
+				content_length: request.response.headers.find((header: Header) => header.name.toLowerCase() === "content-length")?.value,
+				headersSize: request.response.headersSize,
+				bodySize: request.response.bodySize,
+			},
+			timings: {
+				all: request.time,
+				send: request.timings.send,
+				wait: request.timings.wait,
+				receive: request.timings.receive,
+			}
+		}
 
 		if (filteredRequests) {
 			eventBus.publish("DEVTOOLS_SEND_TO_WEBSOCKET", {
@@ -55,7 +83,7 @@ export class DevtoolsModule {
 				payload: {
 					tabId,
 					action,
-					request
+					networkTransferMetrics,
 				}
 			});
 		}
@@ -69,7 +97,7 @@ export class DevtoolsModule {
 		// Compute classification flags based on the request details
 		const method = request.request.method;
 		const responseStatus = request.response.status;
-		const responseMimeType = request.response.content.mimeType;
+		const responseMimeType = request.response.content.mimeType ?? "";
 		const computedFlags: ClassificationFlags = {
 			isImage: responseMimeType.includes("image"),
 			isCSS: responseMimeType.includes("css"),

@@ -10,6 +10,8 @@ import { MessageType } from "../../common/message.types";
 
 export default function SideBar() {
   const [isTracking, setIsTracking] = React.useState(false);
+  // Add state to track if we have results to display
+  const [hasResults, setHasResults] = React.useState(false);
   const [errors, setErrors] = React.useState<string[]>([]);
   const [showErrorBanner, setShowErrorBanner] = React.useState(false);
 
@@ -23,6 +25,11 @@ export default function SideBar() {
       setErrors([]);
       setShowErrorBanner(false);
       
+      // If we're stopping tracking, set hasResults to true to keep showing the data
+      if (isTracking) {
+        setHasResults(true);
+      }
+
       const { payload } = await browser.runtime.sendMessage({
         type: MessageType.TOGGLE_TRACKING,
         from: "sidebar",
@@ -43,7 +50,12 @@ export default function SideBar() {
           failures.forEach(msg => console.error(`[Sidebar] Error: ${msg}`));
           setErrors(failures);
           setShowErrorBanner(true);
-          return;
+          return; // Don't continue if there are errors
+        }
+        
+        // Only clear previous results if we're successfully starting tracking
+        if (hasResults) {
+          setHasResults(false);
         }
       }
   
@@ -95,9 +107,17 @@ export default function SideBar() {
               <li key={index} style={{ fontSize: '0.85rem' }}>{error}</li>
             ))}
           </ul>
-          <div style={{ fontSize: '0.8rem', marginTop: '4px', color: 'rgba(211, 47, 47, 0.7)' }}>
-            Please reload the page and try again
-          </div>
+
+          { errors.includes("Devtools may not be open") && !errors.includes("Content script may not be injected") ? (
+            <div style={{ fontSize: '0.8rem', marginTop: '4px', color: 'rgba(211, 47, 47, 0.7)' }}>
+              Please ensure that the Devtools is open
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.8rem', marginTop: '4px', color: 'rgba(211, 47, 47, 0.7)' }}>
+              Please reload the page and try again
+            </div>
+          )}
+          
         </Alert>
       </Collapse>
 
@@ -105,19 +125,24 @@ export default function SideBar() {
         display: "flex", 
         alignItems: "center", 
         justifyContent: "space-between",
-        padding: "16px",
+        padding: "12px",
+        flexWrap: "wrap",
+        gap: "10px",
         borderBottom: "1px solid rgba(76, 175, 80, 0.2)",
         backgroundColor: isTracking ? "rgba(76, 175, 80, 0.12)" : "rgba(255, 255, 255, 0.6)",
         backdropFilter: "blur(5px)",
         transition: "background-color 0.3s ease-in-out"
       }}>
-        <div>
+        <div style={{ minWidth: "150px", flex: 1 }}>
           <h2 style={{ 
             margin: "0 0 4px 0", 
             fontSize: "1rem", 
             color: "#2e7d32",
             fontWeight: "bold",
-            fontFamily: "inherit" // Will inherit from parent
+            fontFamily: "inherit", // Will inherit from parent
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
           }}>
             Carbon Monitor
           </h2>
@@ -129,7 +154,10 @@ export default function SideBar() {
             display: "flex",
             alignItems: "center",
             gap: "4px",
-            fontFamily: "inherit" // Will inherit from parent
+            fontFamily: "inherit", // Will inherit from parent
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
           }}>
             {isTracking ? (
               <>
@@ -139,36 +167,133 @@ export default function SideBar() {
                   height: "8px", 
                   backgroundColor: "#4caf50",
                   borderRadius: "50%",
-                  animation: "pulse 1.5s infinite"
+                  animation: "pulse 1.5s infinite",
+                  flexShrink: 0
                 }}></span>
                 <span style={{ display: "inline-block", verticalAlign: "middle" }}>
                   Actively tracking your carbon footprint
                 </span>
               </>
+            ) : hasResults ? (
+              "Results available"
             ) : (
               "Monitoring paused"
             )}
           </p>
         </div>
-        <Button 
-          variant="contained" 
-          onClick={handleTrackingButton}
-          color={isTracking ? "error" : "success"}
-          sx={{
-            transition: "all 0.3s ease-in-out",
-            borderRadius: "20px",
-            boxShadow: isTracking ? "0 2px 8px rgba(244, 67, 54, 0.3)" : "0 2px 8px rgba(76, 175, 80, 0.3)",
-            textTransform: "none", // Prevent uppercase transformation
-            padding: "6px 16px",
-            fontWeight: "medium",
-            backgroundColor: isTracking ? "#e53935" : "#43a047",
-            "&:hover": {
-              backgroundColor: isTracking ? "#c62828" : "#2e7d32",
-            }
-          }}
-        >
-          <span>{isTracking ? "Stop Monitoring" : "Start Monitoring"}</span>
-        </Button>
+        
+        {/* Conditional rendering for the action button */}
+        {isTracking ? (
+          <Button 
+            variant="contained" 
+            onClick={handleTrackingButton}
+            color="error"
+            sx={{
+              transition: "all 0.3s ease-in-out",
+              borderRadius: "20px",
+              boxShadow: "0 2px 8px rgba(244, 67, 54, 0.3)",
+              textTransform: "none",
+              padding: { xs: "4px 12px", sm: "6px 16px" },
+              height: "36px",
+              minWidth: { xs: "100px", sm: "140px" },
+              fontSize: { xs: "0.85rem", sm: "0.875rem" },
+              fontWeight: "medium",
+              backgroundColor: "#e53935",
+              "&:hover": {
+                backgroundColor: "#c62828",
+              }
+            }}
+          >
+            <span style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              gap: "4px",
+              height: "100%"
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                   style={{ flexShrink: 0 }}>
+                <path d="M6 6h12v12H6z" fill="white"/>
+              </svg>
+              <span style={{ transform: "translateY(1px)" }}>Stop Monitoring</span>
+            </span>
+          </Button>
+        ) : hasResults ? (
+          <Button 
+            variant="contained" 
+            onClick={handleTrackingButton}
+            color="success"
+            sx={{
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              borderRadius: "20px",
+              boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)",
+              textTransform: "none",
+              padding: { xs: "4px 12px", sm: "6px 16px" },
+              height: "36px",
+              minWidth: { xs: "100px", sm: "140px" },
+              fontSize: { xs: "0.85rem", sm: "0.875rem" },
+              fontWeight: "medium",
+              backgroundColor: "#43a047",
+              "&:hover": {
+                backgroundColor: "#2e7d32",
+                transform: "translateY(-1px)",
+                boxShadow: "0 4px 8px rgba(76, 175, 80, 0.4)",
+              },
+              "&:active": {
+                transform: "translateY(1px)",
+              }
+            }}
+          >
+            <span style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              gap: "4px",
+              height: "100%"
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                   style={{ flexShrink: 0 }}>
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 9h7V2l-2.35 2.35z" fill="white"/>
+              </svg>
+              <span style={{ transform: "translateY(1px)" }}>Start New Tracking</span>
+            </span>
+          </Button>
+        ) : (
+          <Button 
+            variant="contained" 
+            onClick={handleTrackingButton}
+            color="success"
+            sx={{
+              transition: "all 0.3s ease-in-out",
+              borderRadius: "20px",
+              boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)",
+              textTransform: "none",
+              padding: { xs: "4px 12px", sm: "6px 16px" },
+              height: "36px",
+              minWidth: { xs: "100px", sm: "140px" },
+              fontSize: { xs: "0.85rem", sm: "0.875rem" },
+              fontWeight: "medium",
+              backgroundColor: "#43a047",
+              "&:hover": {
+                backgroundColor: "#2e7d32",
+              }
+            }}
+          >
+            <span style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              gap: "4px",
+              height: "100%"
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                   style={{ flexShrink: 0 }}>
+                <path d="M8 5v14l11-7z" fill="white"/>
+              </svg>
+              <span style={{ transform: "translateY(1px)" }}>Start Monitoring</span>
+            </span>
+          </Button>
+        )}
       </div>
       <style>
         {`
@@ -179,7 +304,7 @@ export default function SideBar() {
           }
         `}
       </style>
-      <EventsBox isTracking={isTracking} />
+      <EventsBox isTracking={isTracking} hasResults={hasResults} />
     </div>
   );
 }

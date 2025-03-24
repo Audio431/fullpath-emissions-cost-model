@@ -16,6 +16,7 @@ interface Cookie {
 
 interface RequestDetails {
   bodySize: number;
+  url: string;
   method: string;
   httpVersion: string;
   headers: Header[];

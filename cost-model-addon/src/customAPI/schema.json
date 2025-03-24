@@ -1,7 +1,7 @@
 [
     {
       "namespace": "myAPI",
-      "functions": [
+      "functions": [ 
         {
           "name": "getCPUInfo",
           "type": "function",

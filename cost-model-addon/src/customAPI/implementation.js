@@ -94,7 +94,7 @@ this.myAPI = class extends ExtensionAPI {
     return {
       // if error occured in this function, catch block in background.js will be executed
       myAPI: {
-
+    
         /**
          * Retrieves CPU info via ChromeUtils.requestProcInfo().
          * @returns {Promise<MainProcessInfo>}

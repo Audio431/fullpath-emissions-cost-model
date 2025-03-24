@@ -14,8 +14,6 @@
     "@types/winston": "^2.4.4",
     "@types/ws": "^8.5.14",
     "express": "^4.21.2",
-    "koa": "^2.16.0",
-    "koa-router": "^13.0.1",
     "node-cache": "^5.1.2",
     "ts-node": "^10.9.2",
     "tsc": "^2.0.4",

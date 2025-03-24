@@ -190,8 +190,8 @@ const CarbonImpactChart: React.FC<CarbonChartProps> = ({
       borderRadius: 2,
       backgroundColor: "rgba(255, 255, 255, 0.6)",
       transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
-      opacity: isTracking ? 1 : 0.7,
-      transform: isTracking ? "translateY(0)" : "translateY(5px)",
+      opacity: 1, // Always visible when shown (removed opacity toggle based on isTracking)
+      transform: "translateY(0)", // Always properly positioned (removed conditional transform)
       boxShadow: "0 2px 8px rgba(76, 175, 80, 0.1)",
       border: "1px solid rgba(76, 175, 80, 0.2)",
     }}>
@@ -202,6 +202,7 @@ const CarbonImpactChart: React.FC<CarbonChartProps> = ({
         fontWeight: "medium"
       }}>
         Carbon Impact Distribution
+        {isTracking && <span style={{ fontSize: "0.75rem", fontWeight: "normal", marginLeft: "8px", color: "#81c784" }}>(Live)</span>}
       </Typography>
       
       <svg width={width} height={height}>

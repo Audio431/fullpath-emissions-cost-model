@@ -1,6 +1,7 @@
 import { ApiResponse } from '../../common/api.types';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://fullpath-energyemissions-cost-model.onrender.com/api';
 
 export const api = {
   async startProcess(clientId: string): Promise<ApiResponse<{ message: string }>> {

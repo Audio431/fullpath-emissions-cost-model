@@ -4,6 +4,7 @@ const eventHandler = new EventHandler();
 
 let trackingPort: browser.runtime.Port;
 
+
 browser.runtime.onMessage.addListener((msg : RuntimeMessage, sender, sendResponse) => {
     switch (msg.type) {
         case 'TRACKING_STATE':

@@ -8,15 +8,57 @@ import * as React from "react";
 import EventsBox from "../components/eventBox";
 import { MessageType } from "../../common/message.types";
 
+// Define the emissions data interface
+interface EmissionsData {
+  aggregatedUsage: Record<string, {
+    title: string;
+    pid: number;
+    outerWindowID: number;
+    // Add any other properties needed
+  }>;
+  cpuCO2Emissions: {
+    actual: number;
+  };
+  serverCO2Emissions: {
+    actual: number;
+    "North Scotland": number;
+    "South Scotland": number;
+    England: number;
+    GB: number;
+    // Add other regions as needed
+  };
+}
+
 export default function SideBar() {
   const [isTracking, setIsTracking] = React.useState(false);
   // Add state to track if we have results to display
   const [hasResults, setHasResults] = React.useState(false);
   const [errors, setErrors] = React.useState<string[]>([]);
   const [showErrorBanner, setShowErrorBanner] = React.useState(false);
+  // Add state for emissions data
+  const [emissionsData, setEmissionsData] = React.useState<EmissionsData | undefined>(undefined);
+  const lastMessageMap = new Map<string, string>();
 
   browser.action.onClicked.addListener(() => {
     browser.sidebarAction.close();
+  });
+
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === MessageType.CPU_USAGE && message.from === "background") {
+      console.log("[Sidebar] CPU Usage:", message.payload);
+      
+      try {
+        setEmissionsData(message.payload);
+        
+        sendResponse({ success: true });
+      } catch (error: unknown) {
+        console.error("[Sidebar] Error handling CPU_USAGE message:", error);
+        sendResponse({ success: false, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+    
+    // Return true for asynchronous response
+    return true;
   });
   
   const handleTrackingButton = async () => {
@@ -304,7 +346,7 @@ export default function SideBar() {
           }
         `}
       </style>
-      <EventsBox isTracking={isTracking} hasResults={hasResults} />
+      <EventsBox isTracking={isTracking} hasResults={hasResults} emissionsData={emissionsData} />
     </div>
   );
 }

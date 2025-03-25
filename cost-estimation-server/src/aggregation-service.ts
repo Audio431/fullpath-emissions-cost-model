@@ -13,7 +13,6 @@ export class AggregationService {
 	private carbonCache: NodeCache;
 	private cloudPowerConsumptionCache: NodeCache;
 
-
 	constructor() {
 		this.cpuUsageMap = new Map<string, any[]>();
 		this.carbonCache = new NodeCache({ stdTTL: 1800 });
@@ -101,33 +100,52 @@ export class AggregationService {
 		const powerConsumptionkWh = powerConsumptionW / 1000;
 		
 		// Actual carbon intensity
-		result.set('actual', powerConsumptionkWh * actualData[0].intensity.actual! * 1000 * 1000 * 100);
+		result.set('actual', powerConsumptionkWh * actualData[0].intensity.actual!);
 		
-		// // Regional forecast carbon intensity
+		// Regional forecast carbon intensity
 		// regionalData.forEach(region => {
 		// 	result.set(region.shortname, powerConsumptionkWh * region.intensity.forecast! * 1000 * 1000 * 100);
-		// });
+		// });	
 		
 		return result;
 	}
 
-	async convertRoundtripTimeToCO2Emissions(): Promise<Map<string, number>> {
+	async convertServerProcessTimeToCO2Emissions(): Promise<Map<string, number>> {
 		const result = new Map<string, number>();
 
 		const cloudInstance = 't3.large';
 		const time_workload = 10;
 
 		const cloudPowerConsumptionMJ = await this.getCloudPowerConsumption(cloudInstance, time_workload);
-		const cloudPowerConsumptionkWh = cloudPowerConsumptionMJ.use.value / 3.6;
+
+		const totalNetworkWaitTimeMS = [...this.NetworkDataMap.values()]
+			.flat()
+			.reduce((total, entry) => {
+				const metrics = entry.metrics;
+				if (metrics && metrics.timings && metrics.timings.wait !== undefined) {
+					return total + metrics.timings.wait;
+				}
+				return total;
+			}, 0);
+	
+		const totalNetworkWaitTimeHours = totalNetworkWaitTimeMS / 1000 / 60 / 60;
+
+		const cloudPowerConsumptionkW = cloudPowerConsumptionMJ.use.value / 3.6;
+		const cloudPowerConsumptionkWh = cloudPowerConsumptionkW * totalNetworkWaitTimeHours;
 
 		const { actualData , regionalData } = await this.getCarbonData();
+
+		result.set('actual', cloudPowerConsumptionkWh * actualData[0].intensity.actual!);
+
+		regionalData.forEach(region => {
+			result.set(region.shortname, cloudPowerConsumptionkWh * region.intensity.forecast!);
+		});
 
 		return result;
 	}
 	
-
 	async getAggregatedDataOfEachTab(): Promise<Map<string, Map<string, number | string>>> {
-		const aggregatedData = new Map<string, Map<string, string | number>>();
+		const aggregatedData = new Map<string, Map<string, number | string>>();
 		
 		// Process CPU usage data
 		this.cpuUsageMap.forEach((value, key) => {
@@ -158,7 +176,7 @@ export class AggregationService {
 		this.NetworkDataMap.forEach((networkEntries, tabId) => {
 			let tabMap = aggregatedData.get(tabId);
 			if (!tabMap) {
-				tabMap = new Map<string, number>();
+				tabMap = new Map<string, number | string>();
 				aggregatedData.set(tabId, tabMap);
 			}
 			
@@ -168,48 +186,111 @@ export class AggregationService {
 			let totalNetworkTime = 0;
 			let requestCount = 0;
 			
+			// Track different mime types
+			const mimeTypes = new Map<string, number>();
+			
 			networkEntries.forEach(entry => {
 				const metrics = entry.metrics;
 				if (metrics) {
-					// Sum request sizes
-					if (metrics.request && 
-						(metrics.request.bodySize !== undefined || 
-						 metrics.request.headersSize !== undefined)) {
-						totalRequestSize += (metrics.request.bodySize || 0) + (metrics.request.headersSize || 0);
+					// Track mime types and count
+					if (metrics.response && metrics.response.mimeType) {
+						const mime = metrics.response.mimeType;
+						mimeTypes.set(mime, (mimeTypes.get(mime) || 0) + 1);
 					}
 					
-					// Sum response sizes
-					if (metrics.response && 
-						(metrics.response.bodySize !== undefined || 
-						 metrics.response.headersSize !== undefined)) {
-						totalResponseSize += (metrics.response.bodySize || 0) + (metrics.response.headersSize || 0);
+					// Request size - prioritize content_length
+					if (metrics.request) {
+						const contentLength = metrics.request.content_length;
+						if (contentLength !== undefined && contentLength !== null) {
+							totalRequestSize += Number(contentLength);
+						} else {
+							totalRequestSize += (metrics.request.bodySize || 0) + (metrics.request.headersSize || 0);
+						}
 					}
 					
-					// Sum network times
-					if (metrics.timings && metrics.timings.all !== undefined) {
-						totalNetworkTime += metrics.timings.all;
-						requestCount++;
+					// Response size - prioritize content_length
+					if (metrics.response) {
+						const contentLength = metrics.response.content_length;
+						if (contentLength !== undefined && contentLength !== null) {
+							totalResponseSize += Number(contentLength);
+						} else {
+							totalResponseSize += (metrics.response.bodySize || 0) + (metrics.response.headersSize || 0);
+						}
 					}
+					
+					// Track all timing metrics
+					if (metrics.timings) {
+						if (metrics.timings.all !== undefined) totalNetworkTime += metrics.timings.all;
+						
+						// Initialize timing totals if this is the first request
+						if (requestCount === 0) {
+							tabMap.set('network_time_send', 0);
+							tabMap.set('network_time_wait', 0);
+							tabMap.set('network_time_receive', 0);
+						}
+						
+						// Add each timing component
+						if (metrics.timings.send !== undefined) {
+							tabMap.set('network_time_send', (tabMap.get('network_time_send') as number || 0) + metrics.timings.send);
+						}
+						if (metrics.timings.wait !== undefined) {
+							tabMap.set('network_time_wait', (tabMap.get('network_time_wait') as number || 0) + metrics.timings.wait);
+						}
+						if (metrics.timings.receive !== undefined) {
+							tabMap.set('network_time_receive', (tabMap.get('network_time_receive') as number || 0) + metrics.timings.receive);
+						}
+					}
+					
+					// Count every request that has metrics
+					requestCount++;
+				}
+			});
+			
+			// Determine dominant mime type
+			let dominantMimeType = '';
+			let maxCount = 0;
+			mimeTypes.forEach((count, mime) => {
+				if (count > maxCount) {
+					maxCount = count;
+					dominantMimeType = mime;
 				}
 			});
 			
 			// Store network metrics
+			tabMap.set('network_request_count', requestCount);
 			tabMap.set('network_total_request_size', totalRequestSize);
 			tabMap.set('network_total_response_size', totalResponseSize);
-			tabMap.set('network_request_count', requestCount);
+			tabMap.set('network_total_size', totalRequestSize + totalResponseSize);
+			tabMap.set('network_dominant_mime', dominantMimeType);
 			
 			// Calculate average network time if there are requests
 			if (requestCount > 0) {
 				tabMap.set('network_avg_time', totalNetworkTime / requestCount);
+				
+				// Calculate averages for each timing component
+				if (tabMap.has('network_time_send')) {
+					tabMap.set('network_avg_time_send', (tabMap.get('network_time_send') as number) / requestCount);
+				}
+				if (tabMap.has('network_time_wait')) {
+					tabMap.set('network_avg_time_wait', (tabMap.get('network_time_wait') as number) / requestCount);
+				}
+				if (tabMap.has('network_time_receive')) {
+					tabMap.set('network_avg_time_receive', (tabMap.get('network_time_receive') as number) / requestCount);
+				}
 			}
 			
 			// Calculate transfer rates if time data is available
 			if (totalNetworkTime > 0) {
 				const totalTransferSize = totalRequestSize + totalResponseSize;
-				tabMap.set('network_transfer_rate_bytes_per_ms', totalTransferSize / totalNetworkTime);
+				tabMap.set('network_transfer_rate', totalTransferSize / totalNetworkTime);
 			}
 		});
-
+	
+		// Add the timestamp for when this aggregation was created
+		aggregatedData.forEach((tabMap) => {
+			tabMap.set('timestamp', Date.now());
+		});
+		
 		return aggregatedData;
 	}
 

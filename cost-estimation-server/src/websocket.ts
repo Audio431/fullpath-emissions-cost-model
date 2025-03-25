@@ -137,16 +137,20 @@ async function handlePrepareToClose(ws: WebSocket, clientId: string) {
 	ws.send('Sending aggregated data to client...');
 
 	const aggregatedData = await aggregationService.getAggregatedDataOfEachTab();
-	const co2Emissions = await aggregationService.convertCPUTimeToCO2Emissions();
+	const CPUCO2Emissions = await aggregationService.convertCPUTimeToCO2Emissions();
+	const ServerCO2Emissions = await aggregationService.convertServerProcessTimeToCO2Emissions();
 
 	ws.send(JSON.stringify({
-		'AGGREGATED_CPU_USAGE' : {
+		'AGGREGATED_USAGE' : {
 			// payload: util.inspect(aggregatedData, { showHidden: false, depth: null })
 			payload: mapToObject(aggregatedData)
 		},
-		'CO2_EMISSIONS' : {
+		'CPU_CO2_EMISSIONS' : {
 			// payload: util.inspect(co2Emissions, { showHidden: false, depth: null })
-			payload: mapToObject(co2Emissions)
+			payload: mapToObject(CPUCO2Emissions)
+		},
+		'SERVER_CO2_EMISSIONS' : {
+			payload: mapToObject(ServerCO2Emissions)
 		}
 	}));
 

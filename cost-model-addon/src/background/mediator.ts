@@ -41,18 +41,18 @@ export class BackgroundMediator {
 
 
     private async processServerMessage(message: any): Promise<void> {
-        console.log("[Background] Server message:", message);
-        switch (message.type) {
-            case "AGGREGATED_CPU_USAGE":
-                // eventBus.publish("AGGREGATED_CPU_USAGE", message.payload);
-                console.log("Aggregated CPU usage:", message.payload);
-                break;
-            case MessageType.BACKGROUND_CPU_USAGE:
-                // eventBus.publish("BACKGROUND_CPU_USAGE", message.payload);
-                break;
-            case MessageType.NETWORK_DATA:
-                // eventBus.publish("NETWORK_DATA", message.payload);
-                break;
+        if (message[0].type === "AGGREGATED_USAGE" && 
+            message[1].type === "CPU_CO2_EMISSIONS" &&
+            message[2].type === "SERVER_CO2_EMISSIONS") {
+            this.messagingService.sendToRuntime({
+                    type: MessageType.CPU_USAGE, // Using existing MessageType,
+                    from: 'background',
+                    payload: {
+                        aggregatedUsage: message[0].payload,
+                        cpuCO2Emissions: message[1].payload,
+                        serverCO2Emissions: message[2].payload
+                    }
+            });
         }
     }
  
@@ -279,8 +279,14 @@ export class BackgroundMediator {
 
     private async toggleWebsocketConnection(newState: boolean): Promise<boolean> {
         try {
-            if (newState) {
-                await this.websocketService.connect("BackgroundMediator");
+            if (newState) { 
+                const clientId = localStorage.getItem('clientId');
+                console.log('Client ID:', clientId);
+                if (!clientId) {
+                    console.error("[Background] Client ID not found in local storage");
+                    return false;
+                }
+                await this.websocketService.connect(clientId!);
             } else {
                 this.websocketService.disconnect();
             }

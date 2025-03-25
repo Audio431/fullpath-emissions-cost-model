@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "ES6",
       "lib": ["dom", "dom.iterable", "esnext"],
+      "types": ["firefox-webext-browser"],
       "jsx": "react-jsx",
       "module": "esnext",
       "moduleResolution": "node",
@@ -12,19 +13,19 @@
       "forceConsistentCasingInFileNames": true,
       "isolatedModules": true,
       "resolveJsonModule": true,
-      "baseUrl": ".",
+      "baseUrl": "",
       "paths": {
-        "@devtools/*": ["src/devtools/*"],
+        "@devtools/*": ["src/sidebar/*"],
         "@public/*": ["src/public/*"],
       },
-      "rootDirs": ["src/devtools", "src/devtools/panels", "src/background"],
+      "rootDirs": ["src/sidebar", "src/sidebar/panels", "src/background"],
       "alwaysStrict": true,
       "strictFunctionTypes": true,
       "noImplicitAny": true,
-      "outDir": "./dist",
+      "outDir": "dist",
     },
     "typeRoots": ["./node_modules/@types"], 
-    "include": ["./src"],
-    "exclude": ["./node_modules", "./dist", "./public"],
+    "include": ["src"],
+    "exclude": ["node_modules", "dist", "public"],
   }
   

@@ -1,47 +1,29 @@
-let myWorker: Worker;
-let isChromium = window.chrome;
+import { BackgroundMediator } from "./mediator";
+import { DevtoolsModule, SidebarModule, ContentModule } from "./modules";
 
-if (isChromium) {
-    chrome.runtime.onMessage.addListener((message) => {
+(async () => {
 
-        if (message.data === "start testing performance") {
-    
-            console.log(message.data + " message received");
-            myWorker = new Worker(new URL('./worker.ts', import.meta.url));
-            if (myWorker && crossOriginIsolated) {
-              myWorker.postMessage('start');
-    
-              myWorker.onmessage = function (e) {
-                console.log('Worker response:', e.data);
-              }
-        
-              myWorker.onerror = function (err) {
-                console.error('Worker error:', err.message);
-              };
-            }
-        }    
-    
-    });
-} else {
-
-    browser.runtime.onMessage.addListener((message) => {
-
-    if (message.data === "start testing performance") {
-
-        console.log(message.data + " message received");
-        myWorker = new Worker(new URL('./worker.ts', import.meta.url));
-        if (myWorker && crossOriginIsolated) {
-            myWorker.postMessage('start');
-
-            myWorker.onmessage = function (e) {
-            console.log('Worker response:', e.data);
-            }
-
-            myWorker.onerror = function (err) {
-            console.error('Worker error:', err.message);
-            };
+    function GenerateGuid() {
+        if (self && self.crypto && typeof self.crypto.randomUUID === 'function') {
+            return self.crypto.randomUUID();
         }
-    }    
+        else {
+            const array = new Uint32Array(10);
+            return self.crypto.getRandomValues(array);
+        }
+    }
 
+    const clientId = GenerateGuid() as string;
+    localStorage.setItem('clientId', clientId);
+
+    BackgroundMediator.getInstance();
+
+    SidebarModule.getInstance();
+    ContentModule.getInstance();
+    DevtoolsModule.getInstance();
+
+    browser.action.onClicked.addListener(() => {
+        browser.sidebarAction.open();
     });
-}
+    
+})();

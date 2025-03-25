@@ -12,6 +12,10 @@ const clients = new Map<string, WebSocket>();
 const lastMessageMap = new Map<string, string>();
 const aggregationService = new AggregationService();
 
+app.get('/live', (req: express.Request, res: express.Response): void => {
+	res.status(200).json({ status: 'ALIVE' });
+});
+
 app.use('/api', (req: express.Request, res: express.Response, next) => {
 	logger.info(`HTTP ${req.method} ${req.url}`);
 	next();

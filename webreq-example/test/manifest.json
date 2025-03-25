@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Simple DevTools Extension",
+  "version": "1.0",
+  "description": "Demonstrates communication between DevTools and popup",
+  "permissions": ["storage"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "devtools_page": "devtools.html"
+}

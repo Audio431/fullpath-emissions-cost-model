@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    "name": "webrequest",
+    "version": "1.0",
+  
+    "description": "Adds a red border to all webpages matching mozilla.org.",
+  
+    "icons": {
+      "48": "icons/border-48.png"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["*://*.mozilla.org/*"],
+        "js": ["webrequest.js"]
+      }
+    ],
+
+    "browser_action": {
+      "default_icon": "icons/border-48.png",
+      "default_popup": "webrequest.html",
+      "default_title": "Webrequest"
+    }
+
+}

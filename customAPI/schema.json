@@ -1,11 +1,30 @@
 [
     {
       "namespace": "myAPI",
-      "permissions": [],
       "functions": [
+        {
+          "name": "add",
+          "type": "function",
+          "description": "Add two numbers",
+          "async": true,
+          "parameters": [
+            {
+              "name": "a",
+              "type": "number",
+              "description": "First number"
+            },
+            {
+              "name": "b",
+              "type": "number",
+              "description": "Second number"
+            }
+          ]
+        },
         {
           "name": "getData",
           "type": "function",
+          "description": "Get data from the API",
+          "async": true,
           "parameters": []
         }
       ]

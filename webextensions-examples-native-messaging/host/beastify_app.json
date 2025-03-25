@@ -1,0 +1,8 @@
+{
+  "name": "beastify_app",
+  "description": "Example host for native messaging",
+  "path": "/Users/atip/Downloads/FullPath-EnergyEmissions-Cost-Model/native-messaging/app/beastify_app.js",
+  "type": "stdio",
+  "allowed_extensions": ["test@temporary-addon"]
+}
+

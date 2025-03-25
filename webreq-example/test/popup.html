@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body {
+        width: 400px;
+        padding: 10px;
+      }
+      .request-log {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .request-item {
+        border-bottom: 1px solid #eee;
+        padding: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Network Request Statistics</h3>
+    <p>Total Requests: <span id="requestCount">0</span></p>
+    <div class="request-log" id="requestLog"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

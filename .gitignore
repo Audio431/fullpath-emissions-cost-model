@@ -163,3 +163,7 @@ cython_debug/
 
 node_modules/
 .vscode/
+yarn.lock
+To-Do
+.env.local
+.DS_Store

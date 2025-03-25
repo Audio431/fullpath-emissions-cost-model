@@ -39,8 +39,6 @@ export class MessagingService {
     });
   }
 
-
-
   public static getInstance(): MessagingService {
     if (!MessagingService.instance) {
       MessagingService.instance = new MessagingService();

@@ -1,24 +1,77 @@
 {
     "manifest_version": 3,
-    
-    "version": "0.1",
-    
-    "name": "Performance test for carbon analysis",
-    
-    "devtools_page": "index.html",
-    
+    "name": "Carbon Footprint Tracker",
+    "version": "1.0",
+
+    "devtools_page": "devtools.html",
+
+    "background": {
+      "scripts": ["background.bundle.js"]
+    }, 
+
+    "action" : {
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+      }
+    },
+
+    "sidebar_action": {
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+      },
+
+      "default_title": "Carbon Footprint Tracker",
+      "default_panel": "panel.html",
+      "open_at_install": true
+    },
+
+    "experiment_apis": {
+      "myAPI": {
+        "schema": "customAPI/schema.json",
+        "parent": {
+          "scopes": ["addon_parent"],
+          "paths": [["myAPI"]],
+          "script": "customAPI/implementation.js"
+        }
+      }
+    },
+
+    "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.bundle.js"],
+      "all_frames": false
+    }
+  ],
+
     "browser_specific_settings": {
         "gecko": {
-          "id": "addon@example.com"
-         
+        "id": "my-extension@example.com"
         }
     },
 
-    "background": {
-        "scripts": ["background.bundle.js"],
-        "service_worker": "background.bundle.js"
-    }
+    "web_accessible_resources": [{
+      "resources": ["report.html"],
+      "matches": ["<all_urls>"]
+    }],
 
+    "commands": {
+    "_execute_sidebar_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      }
+    }
+  },
+
+  "permissions": ["scripting", "tabs", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; connect-src 'none' ws://fullpath-energyemissions-cost-model.onrender.com/ https://fullpath-energyemissions-cost-model.onrender.com/ ws://localhost:3000/ http://localhost:3000/;"
+  }
 
 }
-   

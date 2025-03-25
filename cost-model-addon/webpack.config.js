@@ -2,6 +2,7 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { DefinePlugin } = require('webpack');
+require('dotenv').config({ path: path.resolve(__dirname, '.env.local') });
 
 module.exports = {
   mode: 'development',

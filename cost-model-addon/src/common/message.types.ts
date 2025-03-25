@@ -58,7 +58,7 @@ declare global {
     payload: MessagePayloads[T];
   }
 
- type RuntimeMessage = {
+  type RuntimeMessage = {
     [K in MessageType]: {
       type: K;
       from?: MessageSources;
@@ -73,4 +73,3 @@ declare global {
 }
 
 export { Action, MessageType };
-export type { MessagePayloads, Message, RuntimeMessage };

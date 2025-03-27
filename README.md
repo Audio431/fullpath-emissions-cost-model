@@ -1,4 +1,4 @@
-# Readme
+# Readme [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE)
 
 Put a brief description of your code here. This should at least describe the file structure.
 

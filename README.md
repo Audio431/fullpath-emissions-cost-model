@@ -1,4 +1,4 @@
-# Readme [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE)
+# Readme [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE) [![CI](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml)
 
 Put a brief description of your code here. This should at least describe the file structure.
 

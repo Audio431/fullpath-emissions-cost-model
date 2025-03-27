@@ -35,7 +35,7 @@ jobs:
       - name: Build up the extension
         run: |
             cd cost-model-addon
-            npm ci
+            npm install
             npm run build:production
             npm run xpi
             

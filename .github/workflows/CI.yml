@@ -26,11 +26,11 @@ jobs:
       - uses: actions/checkout@v4
 
       # Runs a command to install web-ext for web extension
-      - name: Install web-ext
+      - name: Build up the extension
         run: |
-            git clone https://github.com/mozilla/web-ext.git
-            cd web-ext
-            npm ci
+            cd cost-model-addon
+            npm install
+            npm build
 
       # # Runs a single command using the runners shell
       # - name: Run a one-line script

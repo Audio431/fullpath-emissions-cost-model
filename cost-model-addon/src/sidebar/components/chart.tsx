@@ -1,5 +1,8 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+// chart.tsx
+import React, { memo } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { DeviceIcon, NetworkIcon } from '../public/icons';
 
 // Define types for our chart
 export interface EmissionsChartProps {
@@ -12,24 +15,6 @@ export interface EmissionsChartProps {
 }
 
 const EmissionsChart: React.FC<EmissionsChartProps> = ({ emissions, isTracking }) => {
-  // Convert values to milligrams for display
-  const deviceMilligrams = emissions.device; // Values are already in mg from the parent component
-  const networkMilligrams = emissions.network; // Values are already in mg from the parent component
-  const totalMilligrams = emissions.total; // Values are already in mg from the parent component
-  // Device icon
-  const deviceIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" fill="#43a047"/>
-    </svg>
-  );
-  
-  // Network icon
-  const networkIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="#2196f3"/>
-    </svg>
-  );
-
   return (
     <Box sx={{ 
       width: '100%', 
@@ -80,7 +65,7 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ emissions, isTracking }
             <Box sx={{ 
               display: { xs: 'none', sm: 'block' }
             }}>
-              {deviceIcon}
+              <DeviceIcon />
             </Box>
             <Typography variant="body2" sx={{ 
               color: '#333',
@@ -119,7 +104,7 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ emissions, isTracking }
             <Box sx={{ 
               display: { xs: 'none', sm: 'block' }
             }}>
-              {networkIcon}
+              <NetworkIcon />
             </Box>
             <Typography variant="body2" sx={{ 
               color: '#333',
@@ -134,4 +119,5 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ emissions, isTracking }
   );
 };
 
-export default EmissionsChart;
+// Use memo to prevent unnecessary re-renders
+export default memo(EmissionsChart);

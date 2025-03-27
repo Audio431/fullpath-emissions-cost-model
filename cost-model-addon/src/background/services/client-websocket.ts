@@ -27,8 +27,8 @@ export class WebSocketService {
 
             // WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
             
-            // WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
-            WebSocketService.ws = new WebSocket(`wss://fullpath-energyemissions-cost-model.onrender.com/?clientId=${this.clientId}`);
+            WebSocketService.ws = new WebSocket(`ws://localhost:3000/?clientId=${this.clientId}`);
+            // WebSocketService.ws = new WebSocket(`wss://fullpath-energyemissions-cost-model.onrender.com/?clientId=${this.clientId}`);
             
             WebSocketService.ws.onopen = () => {
                 console.log('WebSocket connection established');

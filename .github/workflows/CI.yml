@@ -35,8 +35,8 @@ jobs:
       - name: Build up the extension
         run: |
             cd cost-model-addon
-            npm install
-            npm run build
+            npm ci
+            npm run build:production
             npm run xpi
             
       - uses: actions/upload-artifact@v4

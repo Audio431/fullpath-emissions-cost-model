@@ -1,7 +1,3 @@
-Below is the updated README.md with the project components named "cost-model-addon" (for the extension) and "cost-estimation-server" (for the backend):
-
----
-
 # Privileged Web Extension: Carbon Visualiser [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE) [![CI](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml) [![Dependabot Updates](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates) [![Live Status](https://img.shields.io/endpoint?url=https://fullpath-energyemissions-cost-model.onrender.com/live)](https://fullpath-energyemissions-cost-model.onrender.com/live) [![Backend Uptime](https://img.shields.io/website?down_color=red&up_color=green&url=https://carbon-estimation.betteruptime.com/)](https://carbon-estimation.betteruptime.com/)
 
 **Version:** 1.0.0  

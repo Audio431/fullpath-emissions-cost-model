@@ -1,13 +1,19 @@
 # Privileged Web Extension: Carbon Visualiser [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE) [![CI](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml) [![Dependabot Updates](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates) [![Server Uptime](https://img.shields.io/website?label=server&down_color=red&up_color=green&url=https://fullpath-energyemissions-cost-model.onrender.com/live)](https://fullpath-energyemissions-cost-model.onrender.com/live)
 
-**Version:** 1.0.0  
-**License:** MIT
+Firefox priviledged browser extension to track the internal system metrics and generate estimated carbon emissions.
 
 ## Overview
 
 This browser extension uses experimental API features in Firefox for access metrics and is built with modern web technologies including React, TypeScript, and Webpack. The project leverages Babel for transpilation, Material UI and Emotion for styling, and a suite of tools to streamline development and packaging.
 
-Additionally, a backend service, **cost-estimation-server**, supports the extension from providing data and real-time communication. This component is deployed live; check their statuses below.
+Additionally, a backend service, **cost-estimation-server**, supports the extension by providing data and real-time communication. This component is deployed live; check its status above.
+
+## Known Limitations
+
+When starting a tracking session, please note the following:
+
+* **Content Script Injection:** On certain privileged pages (e.g., about:* pages), the content script might not inject. In such cases, navigate to another webpage to begin tracking.
+* **Developer Tools Requirement:** The extension requires that the developer tools are open at the time you start the tracking session to properly capture metrics.
 
 ---
 

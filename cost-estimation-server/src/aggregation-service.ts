@@ -1,10 +1,11 @@
 import { logger } from "./logger.js";
 import util from 'util';
 import { fetchCarbonIntensityData, fetchCarbonIntensityDataForRegion } from "./carbon-query.js";
-import { fetchCloudInstanceImpacts, type ImpactDetails, type ImpactResponse} from "./power-query.js";
+import { fetchCloudInstanceImpacts, type ImpactDetails, type ImpactResponse, fetchCPUImpacts} from "./power-query.js";
 import type { CarbonIntensityData, RegionData } from "./carbon-query.js";
 import NodeCache from 'node-cache';
 import { parse } from "path";
+import { log } from "console";
 
 export class AggregationService {
 
@@ -12,11 +13,13 @@ export class AggregationService {
 	private NetworkDataMap: Map<string, any[]>;
 	private carbonCache: NodeCache;
 	private cloudPowerConsumptionCache: NodeCache;
+	private CPUPowerConsumptionCache: NodeCache;
 
 	constructor() {
 		this.cpuUsageMap = new Map<string, any[]>();
 		this.carbonCache = new NodeCache({ stdTTL: 1800 });
 		this.cloudPowerConsumptionCache = new NodeCache({ stdTTL: 1800 });
+		this.CPUPowerConsumptionCache = new NodeCache({ stdTTL: 1800 });
 		this.NetworkDataMap = new Map<string, any[]>();
 	}
 
@@ -80,7 +83,22 @@ export class AggregationService {
 		if (!powerConsumption) {
 			logger.info("Fetching new cloud power consumption data...");
 			powerConsumption = (await fetchCloudInstanceImpacts(cloudInstance, time_workload)).impacts.pe;
+			logger.info(`Power consumption: ${powerConsumption}`);
 			this.cloudPowerConsumptionCache.set(cacheKey, powerConsumption);
+		}
+		return powerConsumption;
+	}
+
+	public async getCPUConsumption(): Promise<any> {
+		logger.info("Fetching new cloud power consumption data...");
+		const cacheKey = `13-inch MacBook Air (M1 CPU) 256GB - 2020`;
+		let cachedValue = this.CPUPowerConsumptionCache.get(cacheKey) as any;
+		let powerConsumption = cachedValue?.verbose?.avg_power;
+
+		if (!powerConsumption) {
+			logger.info("Fetching new cloud power consumption data...");
+			powerConsumption = (await fetchCPUImpacts("13-inch MacBook Air (M1 CPU) 256GB - 2020", 10)).verbose.avg_power;
+			this.CPUPowerConsumptionCache.set(cacheKey, powerConsumption);
 		}
 		return powerConsumption;
 	}
@@ -88,6 +106,7 @@ export class AggregationService {
 	async convertCPUTimeToCO2Emissions(): Promise<Map<string, number>> {
 		const result = new Map<string, number>();
 		const device_power_consumption_W = 10;
+		const fetched_device_power_consumption_W = await this.getCPUConsumption();
 		const { actualData, regionalData } = await this.getCarbonData();
 		
 		// Extract cpuUsage values from the objects and sum them
@@ -96,7 +115,8 @@ export class AggregationService {
 			.reduce((total, entry) => total + entry.cpuUsage, 0);
 		
 		const totalCPUTimeHours = totalCPUTimeNS / 1000 / 1000 / 1000 / 60 / 60;
-		const powerConsumptionW = totalCPUTimeHours * device_power_consumption_W;
+		const powerConsumptionW = totalCPUTimeHours * fetched_device_power_consumption_W.value;
+
 		const powerConsumptionkWh = powerConsumptionW / 1000;
 		
 		// Actual carbon intensity
@@ -113,7 +133,7 @@ export class AggregationService {
 	async convertServerProcessTimeToCO2Emissions(): Promise<Map<string, number>> {
 		const result = new Map<string, number>();
 
-		const cloudInstance = 't3.large';
+		const cloudInstance = 't2.medium';
 		const time_workload = 10;
 
 		const cloudPowerConsumptionMJ = await this.getCloudPowerConsumption(cloudInstance, time_workload);
@@ -127,18 +147,42 @@ export class AggregationService {
 				}
 				return total;
 			}, 0);
+
+		const totalRequestSize = [...this.NetworkDataMap.values()]
+			.flat()
+			.reduce((total, entry) => {
+				const metrics = entry.metrics;
+				if (metrics && metrics.request && metrics.request.bodySize !== undefined) {
+					return total + metrics.request.bodySize;
+				}
+				return total;
+			}, 0);
+
+		const totalResponseSize = [...this.NetworkDataMap.values()]
+			.flat()
+			.reduce((total, entry) => {
+				const metrics = entry.metrics;
+				if (metrics && metrics.response && metrics.response.bodySize !== undefined) {
+					return total + metrics.response.bodySize;
+				}
+				return total;
+			}, 0);
+
+		const totalNetworkSizeGB = (totalRequestSize + totalResponseSize) / 1024 / 1024 / 1024;
+		const networkTransmissionConsumptionkWh = totalNetworkSizeGB * 0.065;
 	
 		const totalNetworkWaitTimeHours = totalNetworkWaitTimeMS / 1000 / 60 / 60;
 
 		const cloudPowerConsumptionkW = cloudPowerConsumptionMJ.use.value / 3.6;
 		const cloudPowerConsumptionkWh = cloudPowerConsumptionkW * totalNetworkWaitTimeHours;
+		
 
 		const { actualData , regionalData } = await this.getCarbonData();
 
-		result.set('actual', cloudPowerConsumptionkWh * actualData[0].intensity.actual!);
+		result.set('actual', (networkTransmissionConsumptionkWh + cloudPowerConsumptionkWh) * actualData[0].intensity.actual!);
 
 		regionalData.forEach(region => {
-			result.set(region.shortname, cloudPowerConsumptionkWh * region.intensity.forecast!);
+			result.set(region.shortname, (networkTransmissionConsumptionkWh + cloudPowerConsumptionkWh) * region.intensity.forecast!);
 		});
 
 		return result;
@@ -262,6 +306,7 @@ export class AggregationService {
 			tabMap.set('network_total_response_size', totalResponseSize);
 			tabMap.set('network_total_size', totalRequestSize + totalResponseSize);
 			tabMap.set('network_dominant_mime', dominantMimeType);
+			tabMap.set('network_total_time', totalNetworkTime);
 			
 			// Calculate average network time if there are requests
 			if (requestCount > 0) {

@@ -43,7 +43,6 @@ The following npm scripts are available to manage development, building, and pac
 | **test**              | `echo "Error: no test specified" && exit 1`                                                                                                      | Placeholder for tests (no tests currently specified).                                                               |
 | **build**             | `webpack --config webpack.dev.js --mode=development --watch`                                                                                     | Bundles the project in development mode and watches for file changes.                                                 |
 | **clean**             | `rm -rf dist`                                                                                                                                    | Cleans the build output by removing the `dist` directory.                                                             |
-| **start:firefox**     | `web-ext run --browser-console --firefox=deved --source-dir dist`                                                                                 | Runs the extension in Firefox with the browser console enabled (using the development profile `deved`).                |
 | **xpi**               | `cd dist && web-ext build --overwrite-dest && mv web-ext-artifacts/carbon_footprint_tracker-1.0.zip web-ext-artifacts/carbon_footprint_tracker-1.0.xpi` | Packages the extension as a Firefox XPI file.                                                                       |
 | **build:production**  | `webpack --config webpack.prod.js --mode=production`                                                                                            | Bundles the project for production deployment.                                                                      |
 
@@ -51,9 +50,6 @@ The following npm scripts are available to manage development, building, and pac
 
 - **Development Build:**  
   Run `npm run build` to start the development build with webpack in watch mode.
-
-- **Testing in Firefox:**  
-  Use `npm run start:firefox` to launch the addon in Firefox. This command will open Firefox with the extension loaded and the browser console available for debugging.
 
 - **Packaging:**  
   After building the project, run `npm run xpi` from the root to generate an XPI package for distribution.

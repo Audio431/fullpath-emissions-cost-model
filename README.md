@@ -59,7 +59,7 @@ The following npm scripts are available to manage development, building, and pac
 
 ## Key Dependencies
 
-The project is developed using a robust set of devDependencies:
+The project is developed using this set of devDependencies:
 
 - **Babel & Webpack:**  
   - `@babel/core`, `@babel/preset-env`, `@babel/preset-react`, `babel-loader`  

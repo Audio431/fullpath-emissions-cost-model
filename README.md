@@ -8,6 +8,11 @@ This browser extension uses experimental API features in Firefox for access metr
 
 Additionally, a backend service, **cost-estimation-server**, supports the extension by providing data and real-time communication. This component is deployed live; check its status above.
 
+
+## Interface
+<img width="300" alt="Screenshot 2025-03-28 at 20 55 20" src="https://github.com/user-attachments/assets/b5ff026e-b93b-4125-ad78-e7b8672bfa6f" />
+<img width="300" alt="Screenshot 2025-03-28 at 20 55 30" src="https://github.com/user-attachments/assets/1571946c-dfec-4262-8b17-b4526fd8f269" />
+
 ## Known Limitations
 
 When starting a tracking session, please note the following:

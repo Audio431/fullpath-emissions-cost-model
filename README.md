@@ -82,7 +82,6 @@ When starting a tracking session, please note the following:
   - `@emotion/react`, `@emotion/styled`
 - **Utility Libraries:**  
   - `dotenv`, `dotenv-cli`  
-  - `@supabase/supabase-js`  
   - `web-ext`, `webextension-polyfill`
 - **Chart Visualisation:**  
   - `@visx/gradient`, `@visx/group`, `@visx/mock-data`, `@visx/scale`, `@visx/shape`  

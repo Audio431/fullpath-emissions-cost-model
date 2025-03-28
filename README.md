@@ -1,10 +1,5 @@
-# Readme [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE) [![CI](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml) [![Dependabot Updates](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates)
+# FullPath-EnergyEmissions-Cost-Model [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/blob/main/LICENSE) [![CI](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/CI.yml) [![Dependabot Updates](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model/actions/workflows/dependabot/dependabot-updates)
 
-Below is an updated example README.md that includes the additional requirements:
-
----
-
-# FullPath-EnergyEmissions-Cost-Model
 **Version:** 1.0.0
 **License:** MIT
 

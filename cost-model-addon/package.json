@@ -1,12 +1,12 @@
 {
   "name": "cost-model-addon",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src",
+  "homepage": "https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.dev.js --mode=development --watch",
     "clean": "rm -rf dist",
-    "start:firefox": "web-ext run --browser-console --firefox=deved --source-dir dist",
     "xpi": "cd dist && web-ext build --overwrite-dest && mv web-ext-artifacts/carbon_footprint_tracker-1.0.zip web-ext-artifacts/carbon_footprint_tracker-1.0.xpi",
     "build:production": "webpack --config webpack.prod.js --mode=production"
   },

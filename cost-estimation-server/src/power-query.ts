@@ -63,5 +63,3 @@ export async function fetchCPUImpacts(cloudInstance: string, time_workload: numb
         .then(response => response.json())
         .catch(error => console.error('Error:', error));
 }
-
-console.log(util.inspect(await fetchCPUImpacts("13-inch MacBook Air (M1 CPU) 256GB - 2020", 10)));

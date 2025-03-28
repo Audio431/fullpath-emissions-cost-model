@@ -167,6 +167,3 @@ async function handlePrepareToClose(ws: WebSocket, clientId: string) {
 
 	aggregationService.clearData();
 }
-
-const aggregated = await aggregationService.getCPUConsumption();
-console.log(aggregated);

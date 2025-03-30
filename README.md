@@ -20,9 +20,8 @@ When starting a tracking session, please note the following:
 * **Content Script Injection:** On certain privileged pages (e.g., about:* pages), the content script might not inject. In such cases, navigate to another webpage to begin tracking.
 * **Developer Tools Requirement:** The extension requires that the developer tools are open at the time you start the tracking session to properly capture metrics.
 
----
 
-## cost-model-addon (Browser Extension)
+##  Browser Extension (cost-model-addon)
 
 ### Requirements
 
@@ -89,13 +88,11 @@ When starting a tracking session, please note the following:
 - **Type Definitions:**  
   - `@types/events`, `@types/firefox`, `@types/firefox-webext-browser`
 
----
-
-## cost-estimation-server (Backend Service)
+## Backend Service (cost-estimation-server)
 
 ### Overview
 
-The **cost-estimation-server** supports the browser extension by providing necessary APIs and real-time communication features. Built with Node.js, Express, and TypeScript, it is deployed live and its status can be monitored through the provided links.
+The **cost-estimation-server** supports the browser extension by providing data and real-time communication. Built with Node.js, Express, and TypeScript, it is deployed live and its status can be monitored through the provided links.
 
 - **Live Deployment:** [https://fullpath-energyemissions-cost-model.onrender.com/live](https://fullpath-energyemissions-cost-model.onrender.com/live)
 - **Monitoring (Better Uptime):** https://carbon-estimation.betteruptime.com/
@@ -140,8 +137,6 @@ The **cost-estimation-server** supports the browser extension by providing neces
 
 - **Testing the Service:**  
   Although no automated tests are currently configured, you can verify the backend functionality by sending HTTP requests (using tools like `curl` or Postman) to the endpoints defined in `src/index.ts`.
-
----
 
 ## License
 

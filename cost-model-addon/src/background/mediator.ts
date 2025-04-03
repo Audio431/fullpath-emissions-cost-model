@@ -186,7 +186,7 @@ export class BackgroundMediator {
      * Process the message and sends it to the appropriate handler.
      * handleContentPortMessage -> handleContentEvent
      */
-    private async handleContentEvent (payload: EventPayload<Action>) {
+    private async handleContentEvent (payload: EventPayload<Action>): Promise<void> {
         switch (payload.event) {
             case Action.CLICK_EVENT:
                 // this.messagingService.sendToRuntime({

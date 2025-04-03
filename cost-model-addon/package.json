@@ -5,10 +5,11 @@
   "homepage": "https://github.com/Audio431/FullPath-EnergyEmissions-Cost-Model",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --config webpack.dev.js --mode=development --watch",
+    "build": "webpack --config webpack.dev.mjs --watch",
     "clean": "rm -rf dist",
     "xpi": "cd dist && web-ext build --overwrite-dest && mv web-ext-artifacts/carbon_footprint_tracker-1.0.zip web-ext-artifacts/carbon_footprint_tracker-1.0.xpi",
-    "build:production": "webpack --config webpack.prod.js --mode=production"
+    "build:production": "webpack --config webpack.prod.mjs",
+    "start:firefox": "web-ext run --browser-console --firefox=deved --verbose --source-dir dist --pref extensions.experiments.enabled=true"
   },
   "author": "",
   "license": "MIT",
@@ -43,6 +44,7 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.7.2",
     "web-ext": "^8.3.0",
+    "web-ext-plugin": "^2.11.0",
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4"

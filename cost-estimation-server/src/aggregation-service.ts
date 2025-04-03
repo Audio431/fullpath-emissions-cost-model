@@ -90,13 +90,13 @@ export class AggregationService {
 	}
 
 	public async getCPUConsumption(): Promise<any> {
-		logger.info("Fetching new cloud power consumption data...");
+		logger.info("Fetching new  CPU power consumption data...");
 		const cacheKey = `13-inch MacBook Air (M1 CPU) 256GB - 2020`;
 		let cachedValue = this.CPUPowerConsumptionCache.get(cacheKey) as any;
 		let powerConsumption = cachedValue?.verbose?.avg_power;
 
 		if (!powerConsumption) {
-			logger.info("Fetching new cloud power consumption data...");
+			logger.info("Fetching new CPU power consumption data...");
 			powerConsumption = (await fetchCPUImpacts("13-inch MacBook Air (M1 CPU) 256GB - 2020", 10)).verbose.avg_power;
 			this.CPUPowerConsumptionCache.set(cacheKey, powerConsumption);
 		}

@@ -6,6 +6,6 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/Cost-model-addon" # Location of package manifests
+    directory: "/cost-model-addon" # Location of package manifests
     schedule:
       interval: "weekly"

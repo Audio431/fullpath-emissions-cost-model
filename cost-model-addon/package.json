@@ -22,7 +22,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.1.7",
-    "@react-spring/web": "^9.7.5",
+    "@react-spring/web": "^10.0.1",
     "@supabase/supabase-js": "^2.48.1",
     "@types/events": "^3.0.3",
     "@types/firefox": "^0.0.34",

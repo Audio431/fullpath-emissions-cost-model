@@ -5,7 +5,18 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/cost-model-addon" # Location of package manifests
+  - package-ecosystem: "npm"
+    directory: "/cost-model-addon"
     schedule:
       interval: "weekly"
+    groups:
+      react-dependencies:
+        patterns:
+          - "@types/react"
+          - "@types/react-dom"
+        group-name: "react-dependencies"
+      mui-dependencies:
+        patterns:
+          - "@mui/material"
+          - "@mui/icons-material"
+        group-name: "mui-dependencies"

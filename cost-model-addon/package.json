@@ -26,7 +26,7 @@
     "@supabase/supabase-js": "^2.48.1",
     "@types/events": "^3.0.3",
     "@types/firefox": "^0.0.34",
-    "@types/firefox-webext-browser": "^120.0.4",
+    "@types/firefox-webext-browser": "^143.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@visx/gradient": "^3.12.0",

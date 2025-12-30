@@ -14,9 +14,7 @@ updates:
         patterns:
           - "@types/react"
           - "@types/react-dom"
-        group-name: "react-dependencies"
       mui-dependencies:
         patterns:
           - "@mui/material"
           - "@mui/icons-material"
-        group-name: "mui-dependencies"
